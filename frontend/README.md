@@ -1,4 +1,4 @@
-<img width="1740" height="853" alt="Screenshot 2025-09-16 005634" src="https://github.com/user-attachments/assets/6f215d2f-edfc-4ca9-8593-639a550bd124" />🏛️ Clean-my-india : 
+#Clean-My-India:  
 Civic Issue Reporting Portal
 
 A full-stack web application that allows citizens to report local issues (like potholes, garbage, water leakage, etc.), track their status, and engage with them through likes and comments. Officials can update statuses and assign issues.
@@ -28,7 +28,7 @@ Assign issues to specific staff.
 
 Moderate comments.
 
-# Clean My India
+ Clean My India
 
 A platform for reporting, tracking, and resolving civic issues in India.
 
