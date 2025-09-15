@@ -32,37 +32,38 @@ Clean My India
 
 A platform for reporting, tracking, and resolving civic issues in India.
 
-Project Structure
-clean-my-india/
-├── backend/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── uploads/
-│   ├── app.js
-│   └── config.js
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── contexts/
-│   │   ├── pages/
-│   │   │   ├── Dashboard.js
-│   │   │   ├── Issues.js
-│   │   │   ├── Profile.js
-│   │   │   └── ...
-│   │   ├── services/
-│   │   ├── App.js
-│   │   └── index.js
-│   ├── package.json
-│   └── ...
-├── .gitignore
-├── README.md
-└── package.json
-#Screenshot:
+# Project Structure
+      clean-my-india/
+      ├── backend/
+      │   ├── controllers/
+      │   ├── middleware/
+      │   ├── models/
+      │   ├── routes/
+      │   ├── uploads/
+      │   ├── app.js
+      │   └── config.js
+      ├── frontend/
+      │   ├── public/
+      │   ├── src/
+      │   │   ├── components/
+      │   │   ├── contexts/
+      │   │   ├── pages/
+      │   │   │   ├── Dashboard.js
+      │   │   │   ├── Issues.js
+      │   │   │   ├── Profile.js
+      │   │   │   └── ...
+      │   │   ├── services/
+      │   │   ├── App.js
+      │   │   └── index.js
+      │   ├── package.json
+      │   └── ...
+      ├── .gitignore
+      ├── README.md
+      └── package.json
 
-image
+# Screenshot:
+<img width="1740" height="853" alt="Screenshot 2025-09-16 005634" src="https://github.com/user-attachments/assets/98572a65-56bb-46de-9f52-60c9e4e4442e" />
+
 🛠️ Tech Stack
 
 Frontend: React, Axios, TailwindCSS / CSS
