@@ -38,7 +38,9 @@ const Header = () => {
               <div className="user-menu">
                 <span>Hello, {currentUser.name}</span>
                 <Link to="/profile">Profile</Link>
-                <button onClick={handleLogout}>Logout</button>
+                <button className="logout-btn" onClick={handleLogout} title="Logout">
+                  <span role="img" aria-label="logout">🚪</span> Logout
+                </button>
               </div>
             </>
           ) : (

@@ -4,53 +4,7 @@ import axios from "axios";
 import "./Issues.css";
 
 const Issues = () => {
-  // Mock Data (for instant UI)
-  const mockIssues = [
-    {
-      id: 1,
-      title: "Garbage pile near market",
-      description: "Large pile of garbage accumulating near the main market area",
-      category: "waste",
-      status: "in_progress",
-      latitude: 28.6139,
-      longitude: 77.209,
-      image_url: "https://via.placeholder.com/300x200",
-      created_at: "2023-05-15T10:30:00Z",
-      comments: 3,
-      likes: 5,
-      creator_name: "Rahul Sharma",
-    },
-    {
-      id: 2,
-      title: "Blocked drainage in sector 5",
-      description: "Drainage blocked causing water logging during rains",
-      category: "drainage",
-      status: "resolved",
-      latitude: 28.6139,
-      longitude: 77.209,
-      image_url: "https://via.placeholder.com/300x200",
-      created_at: "2023-05-10T14:22:00Z",
-      comments: 7,
-      likes: 12,
-      creator_name: "Priya Singh",
-    },
-    {
-      id: 3,
-      title: "Graffiti on public walls",
-      description: "Public walls covered with graffiti in the city center",
-      category: "graffiti",
-      status: "pending",
-      latitude: 28.6139,
-      longitude: 77.209,
-      image_url: "https://via.placeholder.com/300x200",
-      created_at: "2023-05-18T16:45:00Z",
-      comments: 2,
-      likes: 3,
-      creator_name: "Amit Kumar",
-    },
-  ];
-
-  const [issues, setIssues] = useState(mockIssues);
+  const [issues, setIssues] = useState([]);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {

@@ -23,9 +23,15 @@ const Footer = () => {
           <div className="footer-section">
             <h4>Connect With Us</h4>
             <div className="social-links">
-              <a href="#">Facebook</a>
-              <a href="#">Twitter</a>
-              <a href="#">Instagram</a>
+              <a href="#" title="Facebook" aria-label="Facebook">
+                <span role="img" aria-label="Facebook" style={{fontSize: '1.5rem'}}>🔵</span> Facebook
+              </a>
+              <a href="#" title="Twitter" aria-label="Twitter">
+                <span role="img" aria-label="Twitter" style={{fontSize: '1.5rem'}}>🐦</span> Twitter
+              </a>
+              <a href="#" title="Instagram" aria-label="Instagram">
+                <span role="img" aria-label="Instagram" style={{fontSize: '1.5rem'}}>📸</span> Instagram
+              </a>
             </div>
           </div>
         </div>

@@ -43,7 +43,12 @@ const IssueCard = ({ issue, onLike, onComment }) => {
   return (
     <div className="issue-card">
       <div className="issue-image">
-        {issue.image_url && <img src={issue.image_url} alt={issue.title} />}
+        {issue.image_url && (
+          <img
+            src={issue.image_url.startsWith('http') ? issue.image_url : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${issue.image_url}`}
+            alt={issue.title}
+          />
+        )}
         {getStatusBadge(issue.status)}
       </div>
 
@@ -60,8 +65,10 @@ const IssueCard = ({ issue, onLike, onComment }) => {
 
         <div className="issue-footer">
           <div className="issue-stats">
-            <button onClick={onLike}>👍 {issue.likes}</button>
-            <span>💬 {issue.comments}</span>
+            <button className="like-btn" onClick={onLike} title="Like this issue">
+              <span role="img" aria-label="like">👍</span> {issue.likes}
+            </button>
+            <span style={{fontSize: '1rem', color: '#7f8c8d'}}>💬 {issue.comments}</span>
           </div>
 
           {issue.creator_name && <div className="creator">By {issue.creator_name}</div>}

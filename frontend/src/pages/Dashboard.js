@@ -115,19 +115,19 @@ const Dashboard = () => {
 
         <div className="dashboard-tabs">
           <button
-            className={activeTab === 'my-issues' ? 'active' : ''}
+            className={`btn-primary${activeTab === 'my-issues' ? ' active' : ''}`}
             onClick={() => setActiveTab('my-issues')}
           >
             My Issues
           </button>
           <button
-            className={activeTab === 'nearby-issues' ? 'active' : ''}
+            className={`btn-primary${activeTab === 'nearby-issues' ? ' active' : ''}`}
             onClick={() => setActiveTab('nearby-issues')}
           >
             Nearby Issues
           </button>
           <button
-            className={activeTab === 'resolved' ? 'active' : ''}
+            className={`btn-primary${activeTab === 'resolved' ? ' active' : ''}`}
             onClick={() => setActiveTab('resolved')}
           >
             Resolved Issues

@@ -186,11 +186,11 @@ const IssueDetail = () => {
           <div className="issue-actions">
             <button 
               onClick={handleLike} 
-              className={`like-button ${userLiked ? 'liked' : ''}`}
+              className={`like-btn ${userLiked ? 'liked' : ''}`}
+              title="Like this issue"
             >
-              👍 {likeCount}
+              <span role="img" aria-label="like">👍</span> {likeCount}
             </button>
-            
             {currentUser && currentUser.role === 'official' && (
               <div className="official-actions">
                 <button className="btn-primary">Mark as In Progress</button>
@@ -210,8 +210,9 @@ const IssueDetail = () => {
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Add a comment..."
                 rows="3"
+                style={{borderRadius: '6px', border: '1px solid #eaf6fb', padding: '0.6rem', fontSize: '1rem', marginBottom: '0.5rem'}}
               />
-              <button type="submit" disabled={!newComment.trim()}>
+              <button type="submit" className="btn-primary" disabled={!newComment.trim()}>
                 Post Comment
               </button>
             </form>
