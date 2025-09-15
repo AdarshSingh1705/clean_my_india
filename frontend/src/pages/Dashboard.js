@@ -102,14 +102,17 @@ const Dashboard = () => {
           <div className="stat-card">
             <h3>{stats.totalIssues}</h3>
             <p>Total Reports</p>
+            <span role="img" aria-label="reports" style={{fontSize: '1.5rem'}}>📝</span>
           </div>
           <div className="stat-card">
             <h3>{stats.resolvedIssues}</h3>
             <p>Resolved Issues</p>
+            <span role="img" aria-label="resolved" style={{fontSize: '1.5rem'}}>✅</span>
           </div>
           <div className="stat-card">
             <h3>{stats.pendingIssues}</h3>
             <p>Pending Issues</p>
+            <span role="img" aria-label="pending" style={{fontSize: '1.5rem'}}>⏳</span>
           </div>
         </div>
 

@@ -65,6 +65,9 @@ const Profile = () => {
         <div className="profile-header">
           <h1>Your Profile</h1>
           <div className="user-info">
+            <div className="avatar" style={{background: '#3498db', borderRadius: '50%', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', color: 'white', margin: '0 auto 1rem'}}>
+              {currentUser.name.charAt(0).toUpperCase()}
+            </div>
             <h2>{currentUser.name}</h2>
             <p>{currentUser.email}</p>
             <p className="user-role">Role: {currentUser.role}</p>
@@ -75,14 +78,17 @@ const Profile = () => {
           <div className="stat-card">
             <h3>{stats.totalIssues}</h3>
             <p>Total Reports</p>
+            <span role="img" aria-label="reports" style={{fontSize: '1.5rem'}}>📝</span>
           </div>
           <div className="stat-card">
             <h3>{stats.resolvedIssues}</h3>
             <p>Resolved Issues</p>
+            <span role="img" aria-label="resolved" style={{fontSize: '1.5rem'}}>✅</span>
           </div>
           <div className="stat-card">
             <h3>{stats.pendingIssues}</h3>
             <p>Pending Issues</p>
+            <span role="img" aria-label="pending" style={{fontSize: '1.5rem'}}>⏳</span>
           </div>
         </div>
 

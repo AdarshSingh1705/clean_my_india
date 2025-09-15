@@ -14,9 +14,14 @@ const Issues = () => {
   const fetchIssues = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/issues");
-      if (res.data && Array.isArray(res.data)) {
-        // normalize if backend sends different field names
-        const normalized = res.data.map((i) => ({
+      let issuesArr = [];
+      if (Array.isArray(res.data)) {
+        issuesArr = res.data;
+      } else if (Array.isArray(res.data.issues)) {
+        issuesArr = res.data.issues;
+      }
+      if (issuesArr.length > 0) {
+        const normalized = issuesArr.map((i) => ({
           id: i.id,
           title: i.title,
           description: i.description,
@@ -31,9 +36,12 @@ const Issues = () => {
           creator_name: i.creator_name,
         }));
         setIssues(normalized);
+      } else {
+        setIssues([]);
       }
     } catch (err) {
       console.error("Error fetching issues:", err);
+      setIssues([]);
     }
   };
 
