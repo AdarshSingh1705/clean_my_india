@@ -1,0 +1,41 @@
+.issues-page {
+  padding: 2rem 0;
+}
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filters button {
+  padding: 0.5rem 1rem;
+  background: #ecf0f1;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.filters button.active {
+  background-color: #3498db;
+  color: white;
+}
+
+.filters button:hover {
+  background-color: #bdc3c7;
+}
+
+.issues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #7f8c8d;
+  grid-column: 1 / -1;
+}

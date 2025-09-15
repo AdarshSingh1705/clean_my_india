@@ -1,0 +1,21 @@
+{
+  "name": "clean-my-india",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.18.1",
+    "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.7"
+  },
+  "proxy": "http://localhost:5000"
+}
