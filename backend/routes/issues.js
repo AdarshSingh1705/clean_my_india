@@ -1,5 +1,5 @@
 const express = require('express');
-const Issue = require("../models/Issue");
+// const Issue = require("../models/Issue");
 const multer = require('multer');
 const path = require('path');
 const pool = require('../db');
