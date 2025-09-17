@@ -1,70 +1,231 @@
-# Getting Started with Create React App
+#Clean-My-India:  
+Civic Issue Reporting Portal
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack web application that allows citizens to report local issues (like potholes, garbage, water leakage, etc.), track their status, and engage with them through likes and comments. Officials can update statuses and assign issues.
 
-## Available Scripts
+This project is built using React (frontend), Node.js + Express (backend), and PostgreSQL (database).
 
-In the project directory, you can run:
+🚀 Features
+👥 Public Users (No Login Required)
 
-### `npm start`
+View all reported issues.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Browse by filters: pending, in_progress, resolved, closed.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+👤 Registered Users
 
-### `npm test`
+Report a new issue with title, description, category, location, and optional image.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Like and comment on issues.
 
-### `npm run build`
+Track issue status updates in real time.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+🛠️ Officials / Admin
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Update the status of an issue (pending, in_progress, resolved, closed).
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Assign issues to specific staff.
 
-### `npm run eject`
+Moderate comments.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+ Clean My India
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+A platform for reporting, tracking, and resolving civic issues in India.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Project Structure
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+clean-my-india/
+├── backend/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── uploads/
+│   ├── app.js
+│   └── config.js
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── contexts/
+│   │   ├── pages/
+│   │   │   ├── Dashboard.js
+│   │   │   ├── Issues.js
+│   │   │   ├── Profile.js
+│   │   │   └── ...
+│   │   ├── services/
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── package.json
+│   └── ...
+├── .gitignore
+├── README.md
+└── package.json
+```
 
-## Learn More
+#Screenshot:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+<img width="1740" height="853" alt="image" src="https://github.com/user-attachments/assets/db989a54-8a38-4e35-b7c3-8cddc165247c" />
 
-### Code Splitting
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+🛠️ Tech Stack
 
-### Analyzing the Bundle Size
+Frontend: React, Axios, TailwindCSS / CSS
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Backend: Node.js, Express.js
 
-### Making a Progressive Web App
+Database: PostgreSQL
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Authentication: JWT (JSON Web Tokens)
 
-### Advanced Configuration
+File Uploads: Multer (for issue images)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Real-time Updates: Socket.io
 
-### Deployment
+⚙️ Installation
+1️⃣ Clone the repo
+git clone https://github.com/your-username/civic-issues-portal.git
+cd civic-issues-portal
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+2️⃣ Setup Backend
+cd backend
+npm install
 
-### `npm run build` fails to minify
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Create a .env file inside backend/ with the following:
+
+PORT=5000
+DATABASE_URL=postgresql://username:password@localhost:5432/yourdbname
+JWT_SECRET=your_jwt_secret
+
+
+Run database migrations (create tables for users, issues, comments, likes).
+
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100),
+  email VARCHAR(150) UNIQUE,
+  password VARCHAR(200),
+  role VARCHAR(50) DEFAULT 'user'
+);
+
+CREATE TABLE issues (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255),
+  description TEXT,
+  category VARCHAR(100),
+  latitude NUMERIC,
+  longitude NUMERIC,
+  image_url TEXT,
+  status VARCHAR(50) DEFAULT 'pending',
+  priority VARCHAR(50) DEFAULT 'medium',
+  created_by INT REFERENCES users(id),
+  assigned_to INT REFERENCES users(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  resolved_at TIMESTAMP
+);
+
+CREATE TABLE comments (
+  id SERIAL PRIMARY KEY,
+  issue_id INT REFERENCES issues(id),
+  user_id INT REFERENCES users(id),
+  text TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE likes (
+  id SERIAL PRIMARY KEY,
+  issue_id INT REFERENCES issues(id),
+  user_id INT REFERENCES users(id)
+);
+
+
+Start backend:
+
+npm start
+
+3️⃣ Setup Frontend
+cd frontend
+npm install
+npm start
+
+
+By default, frontend runs on http://localhost:3000 and backend on http://localhost:5000.
+
+🔑 API Endpoints
+Public
+
+GET /api/issues → Fetch all issues
+
+GET /api/issues/:id → Fetch a single issue
+
+Protected (Login Required)
+
+POST /api/issues → Create new issue
+
+POST /api/issues/:id/like → Like an issue
+
+DELETE /api/issues/:id/like → Unlike an issue
+
+POST /api/issues/:id/comment → Add a comment
+
+PATCH /api/issues/:id/status → Update issue status (officials only)
+
+PATCH /api/issues/:id/assign → Assign an issue (officials only)
+
+🛡️ Authentication Flow
+
+Users register/login to get a JWT token.
+
+Token is sent in Authorization: Bearer <token> header.
+
+Public routes (view issues) don’t need login.
+
+Protected routes (like, comment, report issue) require a valid token.
+
+📌 Roadmap
+
+ Add map view for issue locations.
+
+ Enable push notifications for status updates.
+
+ Add image preview in comments.
+
+ Add role-based dashboards.
+
+🎮 Future Enhancements
+AI Verification Module: Image authenticity validation (planned)
+
+Priority Tagging: Critical issue escalation for public health hazards
+
+SMS/WhatsApp Integration: Non-smartphone user accessibility
+
+Push Notifications: Real-time status updates
+
+Gamification: Badges, leaderboards, and contributor rewards
+
+Multi-language Support: Regional language localization
+
+Offline Mode: Queue reports when connectivity is limited
+
+🤝 Contributing
+We welcome contributions from the community! Please follow these steps:
+
+Fork the repository
+
+Create a feature branch (git checkout -b feature/amazing-feature)
+
+Commit your changes (git commit -m 'Add some amazing feature')
+
+Push to the branch (git push origin feature/amazing-feature)
+
+Open a Pull Request
+
+📜 License
+
+MIT License © 2025 Your Name
+
+Designed and Developed with ❤️ by Adarsh Singh.
