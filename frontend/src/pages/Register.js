@@ -116,9 +116,10 @@ const Register = () => {
                 required
               />
             )}
-            <button type="submit" disabled={loading}>
-              {loading ? 'Creating Account...' : 'Register'}
+            <button type="submit" disabled={loading} className="cta-button">
+              {loading ? 'Registering...' : 'Register'}
             </button>
+
           </form>
           <p>
             Already have an account? <Link to="/login">Login here</Link>

@@ -1,0 +1,29 @@
+/* SplashScreen.css */
+.splash-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #ffffff;
+  background: linear-gradient(135deg, #4caf50, #8bc34a);
+  text-align: center;
+  transition: opacity 1s ease-in-out;
+}
+
+.quote {
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-out {
+  opacity: 0;
+  transform: translateY(-20px);
+}
