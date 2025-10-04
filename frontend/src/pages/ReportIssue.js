@@ -16,7 +16,13 @@ const ReportIssue = () => {
 
   const handleChange = (e) => {
     if (e.target.name === 'image') {
-      setFormData({ ...formData, image: e.target.files[0] });
+      const file = e.target.files[0];
+      if (file && file.size > 5 * 1024 * 1024) {
+        alert('Image file size must be less than 5MB');
+        e.target.value = ''; // clear the input
+        return;
+      }
+      setFormData({ ...formData, image: file });
     } else {
       setFormData({ ...formData, [e.target.name]: e.target.value });
     }
@@ -62,7 +68,6 @@ const ReportIssue = () => {
     data.append('category', formData.category);
     data.append('latitude', location.latitude);
     data.append('longitude', location.longitude);
-    data.append('created_by', user.id);
     if (formData.image) {
       data.append('image', formData.image);
     }

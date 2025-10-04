@@ -187,35 +187,79 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', auth, upload.single('image'), async (req, res) => {
   try {
+    console.log('Creating issue - req.body:', req.body);
+    console.log('Creating issue - req.user:', req.user);
+    console.log('Creating issue - req.file:', req.file);
+
     const { title, description, category, latitude, longitude, priority } = req.body;
 
     if (!title || !description || !category || !latitude || !longitude) {
+      console.log('Missing required fields:', { title, description, category, latitude, longitude });
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
     let image_url = null;
     if (req.file) {
       image_url = `/uploads/${req.file.filename}`;
+      console.log('Image uploaded:', image_url);
     }
 
+    console.log('Inserting issue into database...');
     const newIssue = await pool.query(
-      `INSERT INTO issues 
-       (title, description, category, latitude, longitude, image_url, created_by, priority) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+      `INSERT INTO issues
+       (title, description, category, latitude, longitude, image_url, created_by, priority)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
       [title, description, category, latitude, longitude, image_url, req.user.id, priority || 'medium']
     );
+    console.log('Issue inserted successfully:', newIssue.rows[0]);
+
+    // Send notification to all officials
+    console.log('Fetching officials...');
+    const officials = await pool.query(
+      'SELECT id FROM users WHERE role = $1',
+      ['official']
+    );
+    console.log('Officials found:', officials.rows.length);
+
+    const Notification = require('../models/Notification');
+
+    // Notify the creator
+    console.log('Creating notification for creator...');
+    await Notification.create(
+      req.user.id,
+      'Issue Reported Successfully',
+      `Your issue "${title}" has been successfully reported.`,
+      'issue_created',
+      newIssue.rows[0].id
+    );
+    console.log('Creator notification created');
+
+    // Notify all officials
+    for (const official of officials.rows) {
+      console.log('Creating notification for official:', official.id);
+      await Notification.create(
+        official.id,
+        'New Issue Reported',
+        `A new issue "${title}" has been reported in your area.`,
+        'new_issue',
+        newIssue.rows[0].id
+      );
+    }
+    console.log('All notifications created');
 
     const io = req.app.get('io');
     io.emit('new-issue', newIssue.rows[0]);
+    console.log('Socket event emitted');
 
     res.status(201).json({
       message: 'Issue reported successfully',
       issue: newIssue.rows[0]
     });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error creating issue - Full error:', err);
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ message: 'Something went wrong!', error: err.message, stack: err.stack });
   }
 });
 
