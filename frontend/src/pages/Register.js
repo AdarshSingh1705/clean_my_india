@@ -93,11 +93,13 @@ const Register = () => {
               onChange={handleChange}
               required
               minLength="6"
+              autoComplete="new-password"
             />
             <input
               type="password"
               name="confirmPassword"
               placeholder="Confirm Password"
+              autoComplete="new-password"
               value={formData.confirmPassword}
               onChange={handleChange}
               required

@@ -3,33 +3,37 @@ const pool = require('../db');
 const { auth } = require('../middleware/auth');
 const router = express.Router();
 
-// Like an issue
+// Like/Unlike an issue (toggle)
 router.post('/:issueId', auth, async (req, res) => {
   try {
     const { issueId } = req.params;
-    
+
     // Check if already liked
     const existingLike = await pool.query(
       'SELECT * FROM likes WHERE issue_id = $1 AND user_id = $2',
       [issueId, req.user.id]
     );
-    
+
     if (existingLike.rows.length > 0) {
-      return res.status(400).json({ message: 'Issue already liked' });
+      // Unlike: Remove the like
+      await pool.query(
+        'DELETE FROM likes WHERE issue_id = $1 AND user_id = $2',
+        [issueId, req.user.id]
+      );
+    } else {
+      // Like: Add the like
+      await pool.query(
+        'INSERT INTO likes (issue_id, user_id) VALUES ($1, $2)',
+        [issueId, req.user.id]
+      );
     }
-    
-    // Add like
-    await pool.query(
-      'INSERT INTO likes (issue_id, user_id) VALUES ($1, $2)',
-      [issueId, req.user.id]
-    );
-    
-    // Get like count
+
+    // Get updated like count
     const likeCount = await pool.query(
       'SELECT COUNT(*) FROM likes WHERE issue_id = $1',
       [issueId]
     );
-    
+
     res.json({ likes: parseInt(likeCount.rows[0].count) });
   } catch (err) {
     console.error(err.message);

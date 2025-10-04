@@ -47,10 +47,16 @@ router.get('/', async (req, res) => {
       SELECT 
         issues.*, 
         users.name as creator_name,
-        (SELECT COUNT(*) FROM comments WHERE issue_id = issues.id) AS comment_count,
-        (SELECT COUNT(*) FROM likes WHERE issue_id = issues.id) AS like_count
+        COALESCE(comment_counts.count, 0) AS comment_count,
+        COALESCE(like_counts.count, 0) AS like_count
       FROM issues 
       LEFT JOIN users ON issues.created_by = users.id
+      LEFT JOIN (
+        SELECT issue_id, COUNT(*) AS count FROM comments GROUP BY issue_id
+      ) AS comment_counts ON issues.id = comment_counts.issue_id
+      LEFT JOIN (
+        SELECT issue_id, COUNT(*) AS count FROM likes GROUP BY issue_id
+      ) AS like_counts ON issues.id = like_counts.issue_id
     `;
 
     let countQuery = 'SELECT COUNT(*) FROM issues';

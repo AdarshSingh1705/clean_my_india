@@ -66,26 +66,37 @@ const IssueDetail = () => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+
     try {
-      const response = await api.post(`/comments`, {
-        issue_id: parseInt(id),
-        text: newComment
+      const response = await api.post(`/comments/${id}/comment`, {
+        text: newComment.trim()
       });
-      
+
+      // Add the new comment to the list
       setComments(prev => [...prev, response.data]);
       setNewComment('');
-      
+      setError('');
+
       // Emit socket event for real-time updates
       if (socket) {
-        socket.emit('new-comment', response.data);
+        socket.emit('new-comment', response.data.comment);
       }
     } catch (error) {
       console.error('Error adding comment:', error);
-      setError('Failed to add comment');
+      setError(error.response?.data?.message || 'Failed to add comment');
     }
   };
 
   const handleLike = async () => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+
     try {
       if (userLiked) {
         await api.delete(`/likes/${id}`);
@@ -96,9 +107,10 @@ const IssueDetail = () => {
         setLikeCount(prev => prev + 1);
         setUserLiked(true);
       }
+      setError('');
     } catch (error) {
       console.error('Error toggling like:', error);
-      setError('Failed to update like');
+      setError(error.response?.data?.message || 'Failed to update like');
     }
   };
 

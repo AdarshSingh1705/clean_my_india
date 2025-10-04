@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import IssueCard from "../components/IssueCard";
-import axios from "axios";
+import api from "../services/api";
 import "./Issues.css";
 
 const Issues = () => {
@@ -13,7 +13,7 @@ const Issues = () => {
 
   const fetchIssues = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/issues");
+      const res = await api.get("/issues");
       let issuesArr = [];
       if (Array.isArray(res.data)) {
         issuesArr = res.data;
@@ -45,18 +45,25 @@ const Issues = () => {
     }
   };
 
-  // Optimistic Like
+  // Toggle Like with optimistic update
   const handleLike = async (id) => {
+    // Optimistically increment (assuming like operation)
     setIssues((prev) =>
       prev.map((issue) =>
         issue.id === id ? { ...issue, likes: issue.likes + 1 } : issue
       )
     );
     try {
-      await axios.post(`http://localhost:5000/api/issues/${id}/like`);
+      const res = await api.post(`/likes/${id}`);
+      // Update with the actual like count from server (handles both like and unlike)
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === id ? { ...issue, likes: res.data.likes } : issue
+        )
+      );
     } catch (err) {
       console.error(err);
-      // rollback
+      // rollback optimistic update
       setIssues((prev) =>
         prev.map((issue) =>
           issue.id === id ? { ...issue, likes: issue.likes - 1 } : issue
@@ -75,7 +82,7 @@ const Issues = () => {
       )
     );
     try {
-      await axios.post(`http://localhost:5000/api/issues/${id}/comments`, {
+      await api.post(`/comments/${id}/comment`, {
         text,
       });
     } catch (err) {

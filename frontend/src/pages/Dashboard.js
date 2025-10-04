@@ -28,7 +28,6 @@ const Dashboard = () => {
       setLoading(true);
       const response = await api.get('/issues');
 
-      // Ensure we always have an array
       let allIssues = [];
       if (Array.isArray(response.data)) {
         allIssues = response.data;
@@ -49,11 +48,9 @@ const Dashboard = () => {
           (issue) => issue.status === 'resolved'
         );
       }
-      // nearby-issues → can be filtered later with geolocation
 
       setIssues(filteredIssues);
 
-      // Calculate stats
       const totalIssues = filteredIssues.length;
       const resolvedIssues = filteredIssues.filter(
         (issue) => issue.status === 'resolved'
@@ -70,19 +67,33 @@ const Dashboard = () => {
 
   // Handle Like
   const handleLike = async (issueId) => {
+    if (!currentUser) {
+      window.location.href = '/login';
+      return;
+    }
+
     try {
-      await api.post(`/issues/${issueId}/like`);
-      fetchIssues(); // refresh issues after like
+          await api.post(`/issues/${issueId}/like`);
+      fetchIssues();
     } catch (err) {
-      console.error('Error liking issue:', err);
+      if (err.response?.status === 401) {
+        window.location.href = '/login';
+      } else {
+        console.error('Error liking issue:', err);
+      }
     }
   };
 
   // Handle Comment
   const handleComment = async (issueId, text) => {
+    if (!currentUser) {
+      window.location.href = '/login';
+      return;
+    }
+
     try {
-      await api.post(`/comments`, { issue_id: issueId, text }); // ✅ correct route & body
-      fetchIssues(); // refresh issues
+      await api.post(`/issues/${issueId}/comment`, { text });
+      fetchIssues();
     } catch (err) {
       console.error("Error commenting:", err);
     }

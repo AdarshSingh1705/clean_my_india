@@ -35,7 +35,7 @@ const IssueCard = ({ issue, onLike, onComment }) => {
   const handleCommentSubmit = (e) => {
     e.preventDefault();
     if (commentText.trim()) {
-      onComment(issue.id, commentText); // Pass both issue id and text
+      onComment(commentText); // send only text (Dashboard knows issueId)
       setCommentText("");
     }
   };
@@ -66,9 +66,11 @@ const IssueCard = ({ issue, onLike, onComment }) => {
         <div className="issue-footer">
           <div className="issue-stats">
             <button className="like-btn" onClick={onLike} title="Like this issue">
-              <span role="img" aria-label="like">👍</span> {issue.likes}
+              <span role="img" aria-label="like">👍</span> {issue.like_count || issue.likes || 0}
             </button>
-            <span style={{fontSize: '1rem', color: '#7f8c8d'}}>💬 {issue.comments}</span>
+            <span style={{fontSize: '1rem', color: '#7f8c8d'}}>
+              💬 {issue.comment_count || 0}
+            </span>
           </div>
 
           {issue.creator_name && <div className="creator">By {issue.creator_name}</div>}
