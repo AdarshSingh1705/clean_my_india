@@ -70,7 +70,10 @@ const Profile = () => {
             </div>
             <h2>{currentUser.name}</h2>
             <p>{currentUser.email}</p>
-            <p className="user-role">Role: {currentUser.role}</p>
+            <p className="user-role" style={{ color: '#dee6eeff', fontWeight: 'bold', fontSize: '16px' }}>
+                 Role: {currentUser.role}
+            </p>
+
           </div>
         </div>
 

@@ -57,7 +57,7 @@ const Login = () => {
               onChange={handleChange}
               required
             />
-            <button type="submit" disabled={loading}>
+            <button type="submit" disabled={loading} className="cta-button">
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>

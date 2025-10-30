@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react'; // Single import
+import SplashScreen from './components/SplashScreen';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
@@ -15,6 +16,7 @@ import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import About from './pages/About';
 import './App.css';
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole = null }) => {
@@ -89,6 +91,16 @@ function AppContent() {
 }
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleSplashFinish = () => {
+    setShowSplash(false); // This will hide the splash screen
+  };
+
+  if (showSplash) {
+    return <SplashScreen onFinish={handleSplashFinish} />;
+  }
+
   return (
     <Router>
       <AuthProvider>
@@ -100,4 +112,6 @@ function App() {
   );
 }
 
+
 export default App;
+
