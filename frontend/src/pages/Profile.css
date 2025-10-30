@@ -108,29 +108,3 @@
   background-color: #27ae60;
   color: white;
 }
-
-/* Status badges for issues */
-.issue-item .status {
-  padding: 0.2rem 0.5rem;
-  border-radius: 5px;
-  font-weight: bold;
-  text-transform: capitalize;
-  color: white;
-}
-
-/* Color coding based on status */
-.status.pending {
-  background-color: orange;
-}
-
-.status.resolved {
-  background-color: green;
-}
-
-.status.in_progress {
-  background-color: #3498db; /* blue */
-}
-
-.status.closed {
-  background-color: gray;
-}
