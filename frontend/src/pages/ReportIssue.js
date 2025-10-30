@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import api from '../services/api';  // use your configured axios instance
 import { useNavigate } from 'react-router-dom';
 import './ReportIssue.css';
+import ImageUpload from "../components/ImageUpload";
+
 
 const ReportIssue = () => {
   const [formData, setFormData] = useState({
@@ -129,13 +131,11 @@ const ReportIssue = () => {
           
           <div className="form-group">
             <label>Image (Optional)</label>
-            <input
-              type="file"
-              name="image"
-              accept="image/*"
-              onChange={handleChange}
+            <ImageUpload
+              onImageSelect={(file) => setFormData({ ...formData, image: file })}
             />
           </div>
+
           
           <div className="form-group">
             <label>Location</label>
