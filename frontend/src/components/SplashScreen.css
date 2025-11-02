@@ -1,23 +1,62 @@
-/* SplashScreen.css */
-.splash-container {
+/* Animated gradient background */
+.splash-bg {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  font-size: 2rem;
-  font-weight: bold;
-  color: #ffffff;
-  background: linear-gradient(135deg, #4caf50, #8bc34a);
-  text-align: center;
-  transition: opacity 1s ease-in-out;
+  width: 100%;
+  background: linear-gradient(-45deg, #036ca5, #ba6bae, #3b7882, #2c3e50);
+  background-size: 400% 400%;
+  animation: gradientMove 6s ease infinite;
 }
 
-.quote {
-  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+/* Glass-effect card */
+.glass-card {
+  padding: 40px 60px;
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle glossy shine animation */
+.glass-card::after {
+  content: "";
+  position: absolute;
+  top: -150%;
+  left: -50%;
+  width: 300%;
+  height: 300%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255,255,255,0.25) 50%,
+    transparent 100%
+  );
+  transform: rotate(25deg);
+  animation: shine 3s infinite ease-in-out;
+}
+
+@keyframes shine {
+  0% { transform: translate(-200%, -200%) rotate(25deg); }
+  100% { transform: translate(200%, 200%) rotate(25deg); }
+}
+
+/* Quotes styling */
+.quote-text {
+  font-size: 2rem;
+  font-weight: 600;
+  color: white;
   opacity: 0;
   transform: translateY(20px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
 }
 
+/* Fade animations */
 .fade-in {
   opacity: 1;
   transform: translateY(0);
@@ -26,4 +65,11 @@
 .fade-out {
   opacity: 0;
   transform: translateY(-20px);
+}
+
+/* Background animation movement */
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }

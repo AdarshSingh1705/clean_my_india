@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import './SplashScreen.css';
+import React, { useEffect, useState } from "react";
+import "./SplashScreen.css";
 
 const quotes = [
   "Your help inspires us!",
@@ -10,21 +10,20 @@ const quotes = [
 
 const SplashScreen = ({ onFinish }) => {
   const [currentQuote, setCurrentQuote] = useState(0);
-  const [fade, setFade] = useState(true); // For fade effect
+  const [fade, setFade] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setFade(false); // Start fade out
+      setFade(false);
       setTimeout(() => {
         setCurrentQuote((prev) => (prev + 1) % quotes.length);
-        setFade(true); // Fade in new quote
-      }, 500); // fade-out duration
-    }, 2000); // change quote every 2s
+        setFade(true);
+      }, 400);
+    }, 2000);
 
-    // Finish splash after total time
     const timeout = setTimeout(() => {
       onFinish();
-    }, 4000); // splash screen duration
+    }, 4200);
 
     return () => {
       clearInterval(interval);
@@ -33,14 +32,14 @@ const SplashScreen = ({ onFinish }) => {
   }, [onFinish]);
 
   return (
-    <div className="splash-container">
-      <span className={`quote ${fade ? 'fade-in' : 'fade-out'}`}>
-        {quotes[currentQuote]}
-      </span>
+    <div className="splash-bg">
+      <div className="glass-card">
+        <span className={`quote-text ${fade ? "fade-in" : "fade-out"}`}>
+          {quotes[currentQuote]}
+        </span>
+      </div>
     </div>
   );
 };
-
-
 
 export default SplashScreen;
