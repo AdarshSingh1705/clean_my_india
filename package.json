@@ -1,4 +1,7 @@
 {
+  "engines": {
+    "node": "22.18.0"
+  },
   "name": "clean-my-india",
   "version": "1.0.0",
   "main": "index.js",
