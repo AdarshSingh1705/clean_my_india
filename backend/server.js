@@ -4,6 +4,8 @@ const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
 const compression = require('compression');
+const errorHandler = require('./middleware/errorHandler');
+const NotificationService = require('./services/NotificationService');
 require('dotenv').config();
 
 const app = express();
@@ -22,7 +24,14 @@ app.use(compression()); // Added compression middleware for gzip
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Ensure uploads directory exists
+const fs = require('fs');
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
 
 // Socket.io for real-time updates
 io.on('connection', (socket) => {
@@ -70,18 +79,16 @@ app.get('/api/health', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
+// Make NotificationService available to routes
+app.locals.notifications = NotificationService;
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
 });
 
-  // 404 handler (works in Express v5 and v4)
-  app.use((req, res) => {
-    res.status(404).json({ message: 'Route not found' });
-  });
+// Error handler (must be last)
+app.use(errorHandler);
 
 
 server.listen(PORT, () => {

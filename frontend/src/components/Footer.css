@@ -5,6 +5,8 @@
   margin-top: 2rem;
   box-shadow: 0 2px 12px rgba(44, 62, 80, 0.12);
   border-top: 4px solid #3498db;
+  position: relative;
+  z-index: 110;
 }
 
 .footer-content {

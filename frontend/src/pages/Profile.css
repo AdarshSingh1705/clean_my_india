@@ -174,7 +174,7 @@ body {
 /* ─────────── Main Content ─────────── */
 .main-content {
   flex: 1;
-  padding: 40px;
+  padding: 10px;
   overflow-y: auto;
 }
 

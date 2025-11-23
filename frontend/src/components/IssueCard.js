@@ -5,91 +5,123 @@ import './IssueCard.css';
 
 const IssueCard = ({ issue, onLike, onComment }) => {
   const [commentText, setCommentText] = useState('');
+  const [isCommenting, setIsCommenting] = useState(false);
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'resolved':
-        return <span className="status-badge resolved">Resolved</span>;
-      case 'in_progress':
-        return <span className="status-badge in-progress">In Progress</span>;
-      default:
-        return <span className="status-badge pending">Pending</span>;
-    }
+  const getStatusConfig = (status) => {
+    const configs = {
+      resolved: { label: 'Resolved', class: 'resolved', icon: '✓' },
+      in_progress: { label: 'In Progress', class: 'in-progress', icon: '⟳' },
+      pending: { label: 'Pending', class: 'pending', icon: '⏱' }
+    };
+    return configs[status] || configs.pending;
   };
 
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'waste':
-        return '🗑️';
-      case 'drainage':
-        return '💧';
-      case 'graffiti':
-        return '🎨';
-      case 'street_cleaning':
-        return '🧹';
-      default:
-        return '📍';
-    }
+  const getCategoryConfig = (category) => {
+    const configs = {
+      waste: { icon: '🗑️', label: 'Waste Management' },
+      drainage: { icon: '💧', label: 'Drainage' },
+      graffiti: { icon: '🎨', label: 'Graffiti' },
+      street_cleaning: { icon: '🧹', label: 'Street Cleaning' },
+      default: { icon: '📍', label: 'General Issue' }
+    };
+    return configs[category] || configs.default;
   };
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
     if (commentText.trim()) {
-      onComment(commentText); // send only text (Dashboard knows issueId)
-      setCommentText("");
+      onComment(commentText);
+      setCommentText('');
+      setIsCommenting(false);
     }
   };
 
+  const statusConfig = getStatusConfig(issue.status);
+  const categoryConfig = getCategoryConfig(issue.category);
+
   return (
     <div className="issue-card">
-      <div className="issue-image">
+      <div className="card-image-section">
         {issue.image_url && (
           <img
             src={issue.image_url.startsWith('http') ? issue.image_url : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${issue.image_url}`}
             alt={issue.title}
+            className="card-image"
           />
         )}
-        {getStatusBadge(issue.status)}
+        <div className={`status-indicator ${statusConfig.class}`}>
+          <span className="status-icon">{statusConfig.icon}</span>
+          {statusConfig.label}
+        </div>
       </div>
 
-      <div className="issue-content">
-        <div className="issue-meta">
-          <span className="category">
-            {getCategoryIcon(issue.category)} {issue.category}
-          </span>
-          <span className="date">{new Date(issue.created_at).toLocaleDateString()}</span>
+      <div className="card-content">
+        <div className="card-header">
+          <div className="category-tag">
+            <span className="category-icon">{categoryConfig.icon}</span>
+            {categoryConfig.label}
+          </div>
+          <time className="date-posted">
+            {new Date(issue.created_at).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            })}
+          </time>
         </div>
 
-        <h3>{issue.title}</h3>
-        <p>{issue.description}</p>
+        <h3 className="issue-title">{issue.title}</h3>
+        <p className="issue-description">{issue.description}</p>
 
-        <div className="issue-footer">
-          <div className="issue-stats">
-            <button className="like-btn" onClick={onLike} title="Like this issue">
-              <span role="img" aria-label="like">👍</span> {issue.like_count || issue.likes || 0}
+        <div className="card-footer">
+          <div className="engagement-metrics">
+            <button 
+              className="engagement-btn like-btn" 
+              onClick={onLike}
+              aria-label="Like this issue"
+            >
+              <span className="engagement-icon">👍</span>
+              <span className="engagement-count">{issue.like_count || issue.likes || 0}</span>
             </button>
-            <span style={{fontSize: '1rem', color: '#7f8c8d'}}>
-              💬 {issue.comment_count || 0}
-            </span>
+            
+            <button 
+              className="engagement-btn comment-btn" 
+              onClick={() => setIsCommenting(!isCommenting)}
+              aria-label="Add comment"
+            >
+              <span className="engagement-icon">💬</span>
+              <span className="engagement-count">{issue.comment_count || 0}</span>
+            </button>
           </div>
 
-          {issue.creator_name && <div className="creator">By {issue.creator_name}</div>}
+          {issue.creator_name && (
+            <div className="creator-info">
+              <span className="created-by">Reported by {issue.creator_name}</span>
+            </div>
+          )}
 
-          <Link to={`/issues/${issue.id || issue._id}`} className="view-details">
-            View Details
+          <Link to={`/issues/${issue.id || issue._id}`} className="details-link">
+            View Details →
           </Link>
         </div>
 
-        {/* Comment Box */}
-        <form onSubmit={handleCommentSubmit} className="comment-form">
-          <input
-            type="text"
-            placeholder="Write a comment..."
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-          />
-          <button type="submit">Send</button>
-        </form>
+        {isCommenting && (
+          <form onSubmit={handleCommentSubmit} className="comment-section">
+            <div className="comment-input-group">
+              <input
+                type="text"
+                placeholder="Add a professional comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                className="comment-input"
+                autoFocus
+              />
+              <button type="submit" className="comment-submit-btn">
+                Post
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 
 /* Features Section - Modern Design */
 .features {
-  padding: 6rem 0;
+  padding: 3rem 0;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   position: relative;
   overflow: hidden;
@@ -31,7 +31,7 @@
 
 .features h2::after {
   content: '';
-  display: block;
+  display: grid;
   width: 80px;
   height: 4px;
   background: linear-gradient(90deg, #3498db, #6dd5fa);
@@ -147,7 +147,7 @@
 
 .stats h2 {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 1rem;
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 700;
   position: relative;

@@ -5,7 +5,8 @@
   align-items: center;
   height: 100vh;
   width: 100%;
-  background: linear-gradient(-45deg, #036ca5, #ba6bae, #3b7882, #2c3e50);
+  /* background: linear-gradient(-45deg, #036ca5, #ba6bae, #3b7882, #2c3e50); */
+  background: rgb(245, 205, 129);
   background-size: 400% 400%;
   animation: gradientMove 6s ease infinite;
 }

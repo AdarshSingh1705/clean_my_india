@@ -31,7 +31,8 @@
 
 .stat-card {
   background: white;
-  padding: 1.5rem;
+  padding: .5rem;
+  min-width: 11rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   text-align: center;
