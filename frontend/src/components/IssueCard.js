@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './IssueCard.css';
+import { BACKEND_ORIGIN } from '../services/api';
 
 const IssueCard = ({ issue, onLike, onComment }) => {
   const [commentText, setCommentText] = useState('');
@@ -44,7 +45,7 @@ const IssueCard = ({ issue, onLike, onComment }) => {
       <div className="card-image-section">
         {issue.image_url && (
           <img
-            src={issue.image_url.startsWith('http') ? issue.image_url : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${issue.image_url}`}
+            src={issue.image_url.startsWith('http') ? issue.image_url : `${BACKEND_ORIGIN}${issue.image_url}`}
             alt={issue.title}
             className="card-image"
           />
