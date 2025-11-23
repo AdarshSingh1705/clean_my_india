@@ -418,4 +418,73 @@ router.post('/:id/comment', auth, async (req, res) => {
 });
 
 
+// ==========================
+// ADMIN ISSUE MANAGEMENT ROUTES
+// ==========================
+
+// Admin: Get all issues
+router.get('/admin/all', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin')
+      return res.status(403).json({ message: "Access denied" });
+
+    const issues = await pool.query(`
+      SELECT 
+        issues.*,
+        u1.name AS created_by_name,
+        u2.name AS assigned_to_name
+      FROM issues
+      LEFT JOIN users u1 ON issues.created_by = u1.id
+      LEFT JOIN users u2 ON issues.assigned_to = u2.id
+      ORDER BY created_at DESC
+    `);
+
+    res.json(issues.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Admin: Update Issue Status
+router.patch('/admin/:id/status', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin')
+      return res.status(403).json({ message: "Access denied" });
+
+    const { status } = req.body;
+
+    const update = await pool.query(
+      `UPDATE issues SET status=$1, updated_at=NOW() WHERE id=$2 RETURNING *`,
+      [status, req.params.id]
+    );
+
+    res.json(update.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Admin: Assign Issue
+router.patch('/admin/:id/assign', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin')
+      return res.status(403).json({ message: "Access denied" });
+
+    const { staff_id } = req.body;
+
+    const update = await pool.query(
+      `UPDATE issues SET assigned_to=$1, updated_at=NOW() WHERE id=$2 RETURNING *`,
+      [staff_id, req.params.id]
+    );
+
+    res.json(update.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 module.exports = router;

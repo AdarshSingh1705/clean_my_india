@@ -16,6 +16,7 @@ import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import About from './pages/About';
 import './App.css';
+import AdminIssues from "./pages/Admin/AdminIssues";
 
 
 // Protected Route Component
@@ -47,6 +48,8 @@ function AppContent() {
           <Route path="/about" element={<About />} />
           <Route path="/issues" element={<Issues />} />
           <Route path="/issues/:id" element={<IssueDetail />} />
+          <Route path="/admin/issues" element={<AdminIssues />} />
+
           
           {/* Protected Routes */}
           <Route 

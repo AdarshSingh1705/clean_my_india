@@ -49,7 +49,7 @@ const Header = () => {
               <Link to="/report">Report Issue</Link>
               
               {currentUser.role === 'admin' && (
-                <Link to="/admin">Admin</Link>
+                <Link to="/admin/issues">Admin Panel</Link>
               )}
               
               <Notifications />
@@ -66,6 +66,7 @@ const Header = () => {
                   </Link>
                   <button className="dropdown-item logout-btn" onClick={handleLogout}>
                     <span role="img" aria-label="logout">🚪</span> Logout
+
                   </button>
                 </div>
               </div>
