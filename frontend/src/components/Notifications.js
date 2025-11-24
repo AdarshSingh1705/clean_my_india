@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSocket } from '../contexts/SocketContext';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import './Notifications.css';
 
@@ -8,9 +9,13 @@ const Notifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const socket = useSocket();
+  const { currentUser } = useAuth();
 
   useEffect(() => {
-    fetchNotifications();
+    // Only fetch notifications if user is authenticated
+    if (currentUser) {
+      fetchNotifications();
+    }
     
     if (socket) {
       socket.on('new-notification', (notification) => {
@@ -24,7 +29,7 @@ const Notifications = () => {
         socket.off('new-notification');
       }
     };
-  }, [socket]);
+  }, [socket, currentUser]);
 
   const fetchNotifications = async () => {
     try {

@@ -51,7 +51,7 @@ const ReportIssue = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const user = JSON.parse(localStorage.getItem('user'));
-    const token = localStorage.getItem('token'); // ✅ get JWT token
+    const token = localStorage.getItem('token');
 
     if (!user || !token) {
       alert('Please log in first');
@@ -70,24 +70,20 @@ const ReportIssue = () => {
     data.append('category', formData.category);
     data.append('latitude', location.latitude);
     data.append('longitude', location.longitude);
+    data.append('created_by', user.id);                // ✅ REQUIRED
+
     if (formData.image) {
-      data.append('image', formData.image);
+      data.append('image', formData.image);            // backend must handle upload → image_url
     }
 
     try {
-      // const res = await axios.post('http://localhost:5000/api/issues', data, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data',
-      //     Authorization: `Bearer ${token}`, // ✅ attach token
-      //   },
-      // });
-      const res = await api.post('/issues', data, {
-  headers: {
-    'Content-Type': 'multipart/form-data'
-  }
-});
+        const res = await api.post('/issues', data, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
+        });
 
-      console.log(res.data);
       alert('Issue reported successfully!');
       navigate('/dashboard');
     } catch (err) {
@@ -95,6 +91,7 @@ const ReportIssue = () => {
       alert(err.response?.data?.message || 'Something went wrong');
     }
   };
+
 
   return (
     <div className="report-issue">

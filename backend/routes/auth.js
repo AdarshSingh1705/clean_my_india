@@ -57,9 +57,9 @@ router.post('/register', async (req, res) => {
       token,
       user: newUser.rows[0]
     });
-  } catch (error) {
-    console.error("🔥 ERROR:", error);
-    return res.status(500).json({ message: error.message });
+  } catch (err) {
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ message: err.message || "server error" });
   }
 });
 

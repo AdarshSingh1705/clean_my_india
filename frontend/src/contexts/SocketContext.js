@@ -14,10 +14,29 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (currentUser) {
-      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      
+      const newSocket = io(apiUrl, {
         auth: {
           token: localStorage.getItem('token')
-        }
+        },
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 5,
+        transports: ['websocket', 'polling']
+      });
+
+      newSocket.on('connect', () => {
+        console.log('Socket connected:', newSocket.id);
+      });
+
+      newSocket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+      });
+
+      newSocket.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
       });
       
       setSocket(newSocket);

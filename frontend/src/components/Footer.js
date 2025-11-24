@@ -26,10 +26,10 @@ const Footer = () => {
             <h4>Connect With Us</h4>
             <div className="social-links">
               <ul>
-                <li><a href="#"><i class="fab fa-facebook-f"></i>  facebook</a></li>
-                <li><a href="https://www.linkedin.com/in/adarshsingh1705"><i class="fab fa-linkedin"></i>  linkedin</a> </li>
-                <li><a href="https://www.instagram.com/abu.obaida.00/"><i class="fab fa-instagram"></i>  instagram</a> </li>
-                <li><a href="https://x.com/ADNAN621636?t=OCuLwhVJ3PdWdR5l4-XBWQ&s=08"><i class="fab fa-twitter"></i>  x</a> </li>
+                <li><a href="#"><i className="fab fa-facebook-f"></i>  facebook</a></li>
+                <li><a href="https://www.linkedin.com/in/adarshsingh1705"><i className="fab fa-linkedin"></i>  linkedin</a> </li>
+                <li><a href="https://www.instagram.com/abu.obaida.00/"><i className="fab fa-instagram"></i>  instagram</a> </li>
+                <li><a href="https://x.com/ADNAN621636?t=OCuLwhVJ3PdWdR5l4-XBWQ&s=08"><i className="fab fa-twitter"></i>  x</a> </li>
               </ul>
             </div>
           </div>
