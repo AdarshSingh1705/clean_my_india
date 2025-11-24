@@ -5,11 +5,14 @@ const pool = require('../db');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 
-  
+console.log('[auth.js] Routes being defined...');
+
 // Register new user
 router.post('/register', async (req, res) => {
   try {
-    console.log('Registration attempt:', req.body);
+    console.log('[register] POST /register received');
+    console.log('[register] Request body:', req.body);
+    console.log('[register] Content-Type:', req.headers['content-type']);
 
     const { name, email, password, role, ward_number } = req.body;
 
