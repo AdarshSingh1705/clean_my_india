@@ -6,8 +6,9 @@ const socketIo = require('socket.io');
 const compression = require('compression');
 const errorHandler = require('./middleware/errorHandler');
 const NotificationService = require('./services/NotificationService');
-require('dotenv').config();
-
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
