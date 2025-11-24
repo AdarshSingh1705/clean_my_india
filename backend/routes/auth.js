@@ -37,20 +37,26 @@ router.post('/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    console.log('[register] Password hashed successfully');
+
     // Create user
+    console.log('[register] Attempting to insert user into database...');
     const newUser = await pool.query(
       `INSERT INTO users (name, email, password, role, ward_number) 
        VALUES ($1, $2, $3, $4, $5) 
        RETURNING id, name, email, role, ward_number, created_at`,
       [name, email, hashedPassword, role || 'citizen', ward_number || null]
     );
+    console.log('[register] User inserted successfully:', newUser.rows[0]);
 
     // Generate JWT token
+    console.log('[register] Generating JWT token...');
     const token = jwt.sign(
       { id: newUser.rows[0].id, role: newUser.rows[0].role },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
+    console.log('[register] JWT token generated successfully');
 
     res.status(201).json({
       message: 'User created successfully',
@@ -58,7 +64,8 @@ router.post('/register', async (req, res) => {
       user: newUser.rows[0]
     });
   } catch (err) {
-    console.error("REGISTER ERROR:", err);
+    console.error("REGISTER ERROR:", err.message);
+    console.error("REGISTER ERROR STACK:", err.stack);
     res.status(500).json({ message: err.message || "server error" });
   }
 });
