@@ -24,6 +24,8 @@ yarn-error.log*
 .env
 # Sensitive and private files
 /../backend/.env
+/../backend/.env.production
+/../backend/.env.local
 /../backend/uploads/
 /../backend/database/
 /../backend/*.sql

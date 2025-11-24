@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import api from "../services/api";
+import axios from "axios";
 
 const IssueList = () => {
   const [issues, setIssues] = useState([]);
@@ -10,7 +10,7 @@ const IssueList = () => {
 
   const fetchIssues = async () => {
     try {
-      const res = await api.get('/issues');
+      const res = await axios.get("http://localhost:5000/api/issues");
       setIssues(res.data);
     } catch (err) {
       console.error("Error loading issues:", err);

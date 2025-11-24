@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import { BACKEND_ORIGIN } from '../services/api';
 import { useAuth } from './AuthContext';
 
 const SocketContext = createContext();
@@ -15,7 +14,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (currentUser) {
-      const newSocket = io(BACKEND_ORIGIN, {
+      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
         auth: {
           token: localStorage.getItem('token')
         }

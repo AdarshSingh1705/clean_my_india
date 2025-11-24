@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
-import api, { BACKEND_ORIGIN } from '../services/api';
+import api from '../services/api';
 import './IssueDetail.css';
 
 
@@ -208,7 +208,7 @@ const IssueDetail = () => {
 
               {issue.image_url && (
                 <div className="issue-image">
-                      <img src={`${BACKEND_ORIGIN}${issue.image_url}`} alt={issue.title} />
+                  <img src={`http://localhost:5000${issue.image_url}`} alt={issue.title} />
                 </div>
               )}
 
