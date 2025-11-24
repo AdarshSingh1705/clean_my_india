@@ -17,9 +17,9 @@ router.get('/stats', auth, isAdmin, async (req, res) => {
       resolvedIssues: parseInt(resolvedIssuesCount.rows[0].count),
       pendingIssues: parseInt(pendingIssuesCount.rows[0].count)
     });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    console.error("🔥 ERROR:", error);
+    return res.status(500).json({ message: error.message });
   }
 });
 

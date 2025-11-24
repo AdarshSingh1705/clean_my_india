@@ -2,7 +2,7 @@
 node_modules/
 .env.local
 *.env
-.env.production
+backend/.env*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -20,60 +20,40 @@ docker-compose.yml
 nginx.conf
 frontend/nginx.conf
 
-
 # Logs
 logs/
-
 *.log
 
 # OS
-
 .DS_Store
 Thumbs.db
-
 
 # Build
 /dist/
 /build/
 
-# Docker
-database/production-setup-sql
-
-*.pid
-
-
 # Database
+database/production-setup-sql
 *.sqlite
 *.db
 *.sql
 
-database/
-
 # Uploaded files
-
 backend/uploads/
-
+backend/postman_collection.json
 # Frontend
-
 frontend/node_modules/
 frontend/build/
 frontend/dist/
 
-
 # Misc
 *.swp
-
 *.swo
-
+*.pid
 
 # Ignore local config
 *.local.js
 *.local.json
-
-# Ignore development secrets (but allow .env.production for deployment)
-backend/.env
-frontend/.env
-!backend/.env.production
 
 # Ignore IDE files
 .vscode/

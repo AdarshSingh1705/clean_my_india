@@ -106,9 +106,9 @@ router.get('/', async (req, res) => {
       page: parseInt(page),
       totalPages: Math.ceil((countResult.rows[0]?.count || 0) / limit)
     });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    console.error("🔥 ERROR:", error);
+    return res.status(500).json({ message: error.message });
   }
 });
 

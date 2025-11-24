@@ -5,6 +5,11 @@ const pool = require('../db');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET environment variable is not defined.');
+  throw new Error('JWT_SECRET must be defined');
+}
+
 console.log('[auth.js] Routes being defined...');
 
 // Register new user
@@ -52,9 +57,9 @@ router.post('/register', async (req, res) => {
       token,
       user: newUser.rows[0]
     });
-  } catch (err) {
-    console.error('Registration error:', err); // Log full error
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    console.error("🔥 ERROR:", error);
+    return res.status(500).json({ message: error.message });
   }
 });
 
@@ -91,9 +96,9 @@ router.post('/login', async (req, res) => {
     const { password: _, ...userWithoutPassword } = user;
 
     res.json({ message: 'Login successful', token, user: userWithoutPassword });
-  } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    console.error("🔥 ERROR:", error);
+    return res.status(500).json({ message: error.message });
   }
 });
 
@@ -110,9 +115,9 @@ router.get('/me', auth, async (req, res) => {
     }
 
     res.json(user.rows[0]);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    console.error("🔥 ERROR:", error);
+    return res.status(500).json({ message: error.message });
   }
 });
 

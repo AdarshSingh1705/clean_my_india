@@ -1,4 +1,5 @@
 const express = require('express');
+const port = process.env.PORT || 4000 
 const cors = require('cors');
 const path = require('path');
 const http = require('http');
@@ -7,6 +8,7 @@ const compression = require('compression');
 const fs = require('fs');
 const errorHandler = require('./middleware/errorHandler');
 const NotificationService = require('./services/NotificationService');
+
 // load env early and robustly
 if (process.env.NODE_ENV === 'production') {
   // try loading .env.production if present (useful for local prod testing)
