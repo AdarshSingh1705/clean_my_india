@@ -23,12 +23,28 @@ if (process.env.NODE_ENV === 'production') {
 
 const app = express();
 const server = http.createServer(app);
+
+// Socket.IO configuration
 const io = socketIo(server, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+    allowEIO3: true
+  },
+  transports: ['websocket', 'polling']
+});
+
+// Socket.IO authentication middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    // Allow unauthenticated connections for now
+    return next();
   }
+  
+  // Token validation can be added here if needed
+  next();
 });
 
 const PORT = process.env.PORT || 5000;

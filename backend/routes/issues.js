@@ -214,44 +214,57 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     );
     console.log('Issue inserted successfully:', newIssue.rows[0]);
 
-    // Send notification to all officials
-    console.log('Fetching officials...');
-    const officials = await pool.query(
-      'SELECT id FROM users WHERE role = $1',
-      ['official']
-    );
-    console.log('Officials found:', officials.rows.length);
+    // Send notification to all officials (non-blocking)
+    try {
+      console.log('Fetching officials...');
+      const officials = await pool.query(
+        'SELECT id FROM users WHERE role = $1',
+        ['official']
+      );
+      console.log('Officials found:', officials.rows.length);
 
-    const Notification = require('../models/Notification');
+      const Notification = require('../models/Notification');
 
-    // Notify the creator
-    console.log('Creating notification for creator...');
-    await Notification.create(
-      req.user.id,
-      'Issue Reported Successfully',
-      `Your issue "${title}" has been successfully reported.`,
-      'issue_created',
-      newIssue.rows[0].id
-    );
-    console.log('Creator notification created');
-
-    // Notify all officials
-    for (const official of officials.rows) {
-      console.log('Creating notification for official:', official.id);
+      // Notify the creator
+      console.log('Creating notification for creator...');
       await Notification.create(
-        official.id,
-        'New Issue Reported',
-        `A new issue "${title}" has been reported in your area.`,
-        'new_issue',
+        req.user.id,
+        'Issue Reported Successfully',
+        `Your issue "${title}" has been successfully reported.`,
+        'issue_created',
         newIssue.rows[0].id
       );
+      console.log('Creator notification created');
+
+      // Notify all officials
+      for (const official of officials.rows) {
+        console.log('Creating notification for official:', official.id);
+        await Notification.create(
+          official.id,
+          'New Issue Reported',
+          `A new issue "${title}" has been reported in your area.`,
+          'new_issue',
+          newIssue.rows[0].id
+        );
+      }
+      console.log('All notifications created');
+    } catch (notificationError) {
+      console.error('Error creating notifications (non-blocking):', notificationError.message);
+      // Continue even if notifications fail
     }
-    console.log('All notifications created');
 
-    const io = req.app.get('io');
-    io.emit('new-issue', newIssue.rows[0]);
-    console.log('Socket event emitted');
+    // Emit socket event
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('new-issue', newIssue.rows[0]);
+        console.log('Socket event emitted');
+      }
+    } catch (socketError) {
+      console.error('Error emitting socket event:', socketError.message);
+    }
 
+    // Return success immediately
     res.status(201).json({
       message: 'Issue reported successfully',
       issue: newIssue.rows[0]
