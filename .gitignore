@@ -70,9 +70,10 @@ frontend/dist/
 *.local.js
 *.local.json
 
-# Ignore production secrets
+# Ignore development secrets (but allow .env.production for deployment)
 backend/.env
 frontend/.env
+!backend/.env.production
 
 # Ignore IDE files
 .vscode/
