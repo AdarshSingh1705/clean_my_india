@@ -272,7 +272,11 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
   } catch (err) {
     console.error('Error creating issue - Full error:', err);
     console.error('Error stack:', err.stack);
-    res.status(500).json({ message: 'Something went wrong!', error: err.message, stack: err.stack });
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.status(500).json({ 
+      message: 'Something went wrong!', 
+      error: isProduction ? undefined : err.message
+    });
   }
 });
 
