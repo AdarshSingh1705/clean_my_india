@@ -65,3 +65,4 @@ coverage/
 # Ignore deployment files
 DEPLOYMENT.md
 TODO.md
+API_TEST.md
