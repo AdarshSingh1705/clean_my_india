@@ -1,21 +1,14 @@
 const express = require('express');
-// const Issue = require("../models/Issue");
 const multer = require('multer');
 const path = require('path');
 const pool = require('../db');
 const { auth, isOfficial } = require('../middleware/auth');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const cloudinary = require('../config/cloudinary');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1e9) + path.extname(file.originalname));
-  }
-});
+// Configure multer for memory storage (Cloudinary)
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage: storage,
@@ -200,8 +193,19 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 
     let image_url = null;
     if (req.file) {
-      image_url = `/uploads/${req.file.filename}`;
-      console.log('Image uploaded:', image_url);
+      // Upload to Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'clean-india-issues' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(req.file.buffer);
+      });
+      image_url = result.secure_url;
+      console.log('Image uploaded to Cloudinary:', image_url);
     }
 
     console.log('Inserting issue into database...');

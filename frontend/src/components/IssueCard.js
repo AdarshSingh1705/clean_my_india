@@ -44,9 +44,12 @@ const IssueCard = ({ issue, onLike, onComment }) => {
       <div className="card-image-section">
         {issue.image_url && (
           <img
-            src={issue.image_url.startsWith('http') ? issue.image_url : `https://clean-india-j4w0.onrender.com${issue.image_url}`}
+            src={issue.image_url}
             alt={issue.title}
             className="card-image"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
           />
         )}
         <div className={`status-indicator ${statusConfig.class}`}>
