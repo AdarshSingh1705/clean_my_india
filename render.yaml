@@ -11,4 +11,4 @@ services:
         destination: /index.html
     envVars:
       - key: REACT_APP_API_URL
-        value: https://clean-india-j4w0.onrender.com
+        value: https://clean-india-j4w0.onrender.com/api
