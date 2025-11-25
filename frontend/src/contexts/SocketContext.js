@@ -24,7 +24,8 @@ export const SocketProvider = ({ children }) => {
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         reconnectionAttempts: 5,
-        transports: ['websocket', 'polling']
+        transports: ['polling', 'websocket'],
+        path: '/socket.io/'
       });
 
       newSocket.on('connect', () => {

@@ -1,178 +1,176 @@
-<h2 align="center"># Clean-My-India: </h2>
+<h1 align="center">Clean My India</h1>
+<p align="center">Civic Issue Reporting Portal</p>
 
-Civic Issue Reporting Portal
+A full-stack web application that allows citizens to report local issues (potholes, garbage, water leakage, etc.), track their status, and engage through likes and comments. Officials can update statuses and assign issues.
 
-A full-stack web application that allows citizens to report local issues (like potholes, garbage, water leakage, etc.), track their status, and engage with them through likes and comments. Officials can update statuses and assign issues.
+## 🚀 Features
 
-This project is built using React (frontend), Node.js + Express (backend), and PostgreSQL (database).
+### 👥 Public Users (No Login Required)
+- View all reported issues
+- Browse by filters: status, category, priority
+- View issue details with comments and likes
 
-🚀 Features 👥 Public Users (No Login Required)
+### 👤 Registered Users
+- Report new issues with location and optional image
+- Like and comment on issues
+- Track issue status updates in real-time
+- View personal dashboard
 
-View all reported issues.
+### 🛠️ Officials / Admin
+- Update issue status (pending, in_progress, resolved, closed)
+- Assign issues to staff members
+- Manage users and moderate content
 
-Browse by filters: pending, in_progress, resolved, closed.
+## 📁 Project Structure
 
-👤 Registered Users
+```
+clean-my-india/
+├── backend/              # Node.js + Express API
+│   ├── middleware/       # Auth & error handling
+│   ├── models/          # Database models
+│   ├── routes/          # API routes
+│   ├── services/        # Business logic
+│   ├── test/            # Testing files
+│   ├── server.js        # Entry point
+│   └── db.js           # Database connection
+├── frontend/            # React application
+│   ├── src/
+│   │   ├── components/  # Reusable components
+│   │   ├── contexts/    # React contexts
+│   │   ├── pages/       # Page components
+│   │   └── services/    # API services
+│   └── public/
+└── README.md
+```
 
-Report a new issue with title, description, category, location, and optional image.
+## 📸 Screenshot
 
-Like and comment on issues.
+<img width="1740" height="853" alt="Clean My India Dashboard" src="https://github.com/user-attachments/assets/98572a65-56bb-46de-9f52-60c9e4e4442e" />
 
-Track issue status updates in real time.
+## 🛠️ Tech Stack
 
-🛠️ Officials / Admin
+**Frontend:**
+- React
+- Axios
+- TailwindCSS
 
-Update the status of an issue (pending, in_progress, resolved, closed).
+**Backend:**
+- Node.js + Express
+- PostgreSQL
+- JWT Authentication
+- Socket.io (real-time updates)
+- Multer (file uploads)
 
-Assign issues to specific staff.
+## ⚙️ Installation
 
-Moderate comments.
+### 1️⃣ Clone Repository
+```bash
+git clone https://github.com/your-username/clean-my-india.git
+cd clean-my-india
+```
 
-Clean My India
+### 2️⃣ Setup Backend
+```bash
+cd backend
+npm install
+```
 
-A platform for reporting, tracking, and resolving civic issues in India.
+Create `.env` file:
+```env
+DB_HOST=your-database-host
+DB_NAME=clean_india_db
+DB_USER=your-db-user
+DB_PASS=your-db-password
+DB_PORT=5432
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:3000
+NODE_ENV=development
+```
 
-# Project Structure
-      clean-my-india/
-      ├── backend/
-      │   ├── controllers/
-      │   ├── middleware/
-      │   ├── models/
-      │   ├── routes/
-      │   ├── uploads/
-      │   ├── app.js
-      │   └── config.js
-      ├── frontend/
-      │   ├── public/
-      │   ├── src/
-      │   │   ├── components/
-      │   │   ├── contexts/
-      │   │   ├── pages/
-      │   │   │   ├── Dashboard.js
-      │   │   │   ├── Issues.js
-      │   │   │   ├── Profile.js
-      │   │   │   └── ...
-      │   │   ├── services/
-      │   │   ├── App.js
-      │   │   └── index.js
-      │   ├── package.json
-      │   └── ...
-      ├── .gitignore
-      ├── README.md
-      └── package.json
-
-# Screenshot:
-<img width="1740" height="853" alt="Screenshot 2025-09-16 005634" src="https://github.com/user-attachments/assets/98572a65-56bb-46de-9f52-60c9e4e4442e" />
-
-🛠️ Tech Stack
-
-Frontend: React, Axios, TailwindCSS / CSS
-
-Backend: Node.js, Express.js
-
-Database: PostgreSQL
-
-Authentication: JWT (JSON Web Tokens)
-
-File Uploads: Multer (for issue images)
-
-Real-time Updates: Socket.io
-
-⚙️ Installation 1️⃣ Clone the repo git clone https://github.com/your-username/civic-issues-portal.git cd civic-issues-portal
-
-2️⃣ Setup Backend cd backend npm install
-
-Create a .env file inside backend/ with the following:
-
-PORT=5000 DATABASE_URL=postgresql://username:password@localhost:5432/yourdbname JWT_SECRET=your_jwt_secret
-
-Run database migrations (create tables for users, issues, comments, likes).
-
-CREATE TABLE users ( id SERIAL PRIMARY KEY, name VARCHAR(100), email VARCHAR(150) UNIQUE, password VARCHAR(200), role VARCHAR(50) DEFAULT 'user' );
-
-CREATE TABLE issues ( id SERIAL PRIMARY KEY, title VARCHAR(255), description TEXT, category VARCHAR(100), latitude NUMERIC, longitude NUMERIC, image_url TEXT, status VARCHAR(50) DEFAULT 'pending', priority VARCHAR(50) DEFAULT 'medium', created_by INT REFERENCES users(id), assigned_to INT REFERENCES users(id), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, resolved_at TIMESTAMP );
-
-CREATE TABLE comments ( id SERIAL PRIMARY KEY, issue_id INT REFERENCES issues(id), user_id INT REFERENCES users(id), text TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP );
-
-CREATE TABLE likes ( id SERIAL PRIMARY KEY, issue_id INT REFERENCES issues(id), user_id INT REFERENCES users(id) );
+Setup database:
+```bash
+# Run the SQL script in your PostgreSQL database
+psql -h host -U user -d database -f backend/test/setup-database.sql
+```
 
 Start backend:
-
+```bash
 npm start
+```
 
-3️⃣ Setup Frontend cd frontend npm install npm start
+### 3️⃣ Setup Frontend
+```bash
+cd frontend
+npm install
+npm start
+```
 
-By default, frontend runs on http://localhost:3000 and backend on http://localhost:5000.
+**URLs:**
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:5000`
 
-🔑 API Endpoints Public
+## 🔑 API Endpoints
 
-GET /api/issues → Fetch all issues
+### Public
+- `GET /api/health` - Health check
+- `GET /api/issues` - Get all issues
+- `GET /api/issues/:id` - Get single issue
 
-GET /api/issues/:id → Fetch a single issue
+### Authentication
+- `POST /api/auth/register` - Register user
+- `POST /api/auth/login` - Login user
+- `GET /api/auth/me` - Get current user
 
-Protected (Login Required)
+### Protected (Login Required)
+- `POST /api/issues` - Report new issue
+- `POST /api/issues/:id/like` - Like issue
+- `DELETE /api/issues/:id/like` - Unlike issue
+- `POST /api/issues/:id/comment` - Add comment
 
-POST /api/issues → Create new issue
+### Official/Admin Only
+- `PATCH /api/issues/:id/status` - Update status
+- `PATCH /api/issues/:id/assign` - Assign issue
 
-POST /api/issues/:id/like → Like an issue
+## 🧪 Testing
 
-DELETE /api/issues/:id/like → Unlike an issue
+### Run API Tests
+```bash
+cd backend
+npm test
+```
 
-POST /api/issues/:id/comment → Add a comment
+### Test with Postman
+Import `backend/test/Clean-My-India-API.postman_collection.json` in Postman.  
+See `backend/test/POSTMAN_GUIDE.md` for details.
 
-PATCH /api/issues/:id/status → Update issue status (officials only)
+### Test Database Connection
+```bash
+node backend/test/test-db-connection.js
+```
 
-PATCH /api/issues/:id/assign → Assign an issue (officials only)
+## 🎮 Future Enhancements
 
-🛡️ Authentication Flow
+- 🗺️ Map view for issue locations
+- 🔔 Push notifications for status updates
+- 🤖 AI verification for image authenticity
+- 📱 SMS/WhatsApp integration
+- 🏆 Gamification (badges, leaderboards)
+- 🌐 Multi-language support
+- 📴 Offline mode
 
-Users register/login to get a JWT token.
+## 🤝 Contributing
 
-Token is sent in Authorization: Bearer header.
+Contributions are welcome!
 
-Public routes (view issues) don’t need login.
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-Protected routes (like, comment, report issue) require a valid token.
+## 📜 License
 
-📌 Roadmap
+MIT License © 2025
 
-Add map view for issue locations.
-
-Enable push notifications for status updates.
-
-Add image preview in comments.
-
-Add role-based dashboards.
-
-🎮 Future Enhancements AI Verification Module: Image authenticity validation (planned)
-
-Priority Tagging: Critical issue escalation for public health hazards
-
-SMS/WhatsApp Integration: Non-smartphone user accessibility
-
-Push Notifications: Real-time status updates
-
-Gamification: Badges, leaderboards, and contributor rewards
-
-Multi-language Support: Regional language localization
-
-Offline Mode: Queue reports when connectivity is limited
-
-🤝 Contributing We welcome contributions from the community! Please follow these steps:
-
-Fork the repository
-
-Create a feature branch (git checkout -b feature/amazing-feature)
-
-Commit your changes (git commit -m 'Add some amazing feature')
-
-Push to the branch (git push origin feature/amazing-feature)
-
-Open a Pull Request
-
-📜 License
-
-MIT License © 2025 Your Name
-
-<p align="center">_Designed and Developed with ❤️ by Adarsh Singh._</p>
-
+<p align="center">Designed and Developed with ❤️ by Adarsh Singh</p>

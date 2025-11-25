@@ -28,11 +28,12 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-    allowEIO3: true
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    credentials: true
   },
-  transports: ['websocket', 'polling']
+  transports: ['polling', 'websocket'],
+  allowEIO3: true,
+  path: '/socket.io/'
 });
 
 // Socket.IO authentication middleware

@@ -1,0 +1,432 @@
+{
+	"info": {
+		"name": "Clean My India API",
+		"description": "Complete API collection for Clean My India - Civic Issue Reporting Portal",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "issueId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/health",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "health"]
+				},
+				"description": "Check if the server is running"
+			},
+			"response": []
+		},
+		{
+			"name": "Register User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201) {",
+							"    var jsonData = pm.response.json();",
+							"    pm.collectionVariables.set('token', jsonData.token);",
+							"    console.log('Token saved:', jsonData.token);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test@123\",\n  \"role\": \"citizen\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "register"]
+				},
+				"description": "Register a new user. Token is automatically saved."
+			},
+			"response": []
+		},
+		{
+			"name": "Login User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var jsonData = pm.response.json();",
+							"    pm.collectionVariables.set('token', jsonData.token);",
+							"    console.log('Token saved:', jsonData.token);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test@123\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/login",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "login"]
+				},
+				"description": "Login with existing user. Token is automatically saved."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Current User",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/me",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "me"]
+				},
+				"description": "Get current logged-in user details. Requires authentication."
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Issues",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/issues?page=1&limit=10",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "issues"],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "10"
+						},
+						{
+							"key": "status",
+							"value": "pending",
+							"disabled": true
+						},
+						{
+							"key": "category",
+							"value": "pothole",
+							"disabled": true
+						},
+						{
+							"key": "priority",
+							"value": "high",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Get all issues with optional filters (status, category, priority)"
+			},
+			"response": []
+		},
+		{
+			"name": "Report Issue (No Image)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201) {",
+							"    var jsonData = pm.response.json();",
+							"    pm.collectionVariables.set('issueId', jsonData.issue.id);",
+							"    console.log('Issue ID saved:', jsonData.issue.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Pothole on Main Street\",\n  \"description\": \"Large pothole causing traffic issues and vehicle damage\",\n  \"category\": \"pothole\",\n  \"latitude\": 28.6139,\n  \"longitude\": 77.2090,\n  \"priority\": \"high\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/issues",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "issues"]
+				},
+				"description": "Report a new issue without image. Issue ID is automatically saved."
+			},
+			"response": []
+		},
+		{
+			"name": "Report Issue (With Image)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201) {",
+							"    var jsonData = pm.response.json();",
+							"    pm.collectionVariables.set('issueId', jsonData.issue.id);",
+							"    console.log('Issue ID saved:', jsonData.issue.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "title",
+							"value": "Garbage Pile Near Park",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "Large garbage pile accumulating near the park entrance",
+							"type": "text"
+						},
+						{
+							"key": "category",
+							"value": "garbage",
+							"type": "text"
+						},
+						{
+							"key": "latitude",
+							"value": "28.7041",
+							"type": "text"
+						},
+						{
+							"key": "longitude",
+							"value": "77.1025",
+							"type": "text"
+						},
+						{
+							"key": "priority",
+							"value": "medium",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"type": "file",
+							"src": [],
+							"description": "Select an image file (jpg, png, gif - max 5MB)"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/issues",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "issues"]
+				},
+				"description": "Report a new issue with image upload. Click on 'image' field and select a file."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Single Issue",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/issues/{{issueId}}",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "issues", "{{issueId}}"]
+				},
+				"description": "Get details of a specific issue by ID"
+			},
+			"response": []
+		},
+		{
+			"name": "Like Issue",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/issues/{{issueId}}/like",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "issues", "{{issueId}}", "like"]
+				},
+				"description": "Like an issue. Requires authentication."
+			},
+			"response": []
+		},
+		{
+			"name": "Unlike Issue",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/issues/{{issueId}}/like",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "issues", "{{issueId}}", "like"]
+				},
+				"description": "Unlike an issue. Requires authentication."
+			},
+			"response": []
+		},
+		{
+			"name": "Add Comment",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"text\": \"This issue needs immediate attention!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/issues/{{issueId}}/comment",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "issues", "{{issueId}}", "comment"]
+				},
+				"description": "Add a comment to an issue. Requires authentication."
+			},
+			"response": []
+		},
+		{
+			"name": "Update Issue Status (Official Only)",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"in_progress\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/issues/{{issueId}}/status",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "issues", "{{issueId}}", "status"]
+				},
+				"description": "Update issue status. Requires official/admin role. Status: pending, in_progress, resolved, closed"
+			},
+			"response": []
+		},
+		{
+			"name": "Assign Issue (Official Only)",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"assigned_to\": 2\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/issues/{{issueId}}/assign",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "issues", "{{issueId}}", "assign"]
+				},
+				"description": "Assign issue to a user. Requires official/admin role. Use user ID in assigned_to field."
+			},
+			"response": []
+		}
+	]
+}
