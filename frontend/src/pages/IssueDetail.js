@@ -19,6 +19,7 @@ const IssueDetail = () => {
   const [error, setError] = useState('');
   const [likeCount, setLikeCount] = useState(0);
   const [userLiked, setUserLiked] = useState(false);
+  const [statusUpdating, setStatusUpdating] = useState(false);
 
 
   useEffect(() => {
@@ -154,6 +155,22 @@ const IssueDetail = () => {
     }
   };
 
+  const handleStatusChange = async (newStatus) => {
+    if (!currentUser || currentUser.role !== 'official') return;
+    
+    setStatusUpdating(true);
+    try {
+      await api.patch(`/issues/${id}/status`, { status: newStatus });
+      setIssue(prev => ({ ...prev, status: newStatus }));
+      alert(`Issue status updated to ${newStatus.replace('_', ' ')}`);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert(error.response?.data?.message || 'Failed to update status');
+    } finally {
+      setStatusUpdating(false);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -208,7 +225,7 @@ const IssueDetail = () => {
 
               {issue.image_url && (
                 <div className="issue-image">
-                  <img src={`http://localhost:5000${issue.image_url}`} alt={issue.title} />
+                  <img src={issue.image_url} alt={issue.title} />
                 </div>
               )}
 
@@ -230,8 +247,24 @@ const IssueDetail = () => {
                 </button>
                 {currentUser && currentUser.role === 'official' && (
                   <div className="official-actions">
-                    <button className="btn-primary">Mark as In Progress</button>
-                    <button className="btn-success">Mark as Resolved</button>
+                    {issue.status === 'pending' && (
+                      <button 
+                        className="btn-primary" 
+                        onClick={() => handleStatusChange('in_progress')}
+                        disabled={statusUpdating}
+                      >
+                        {statusUpdating ? 'Updating...' : 'Mark as In Progress'}
+                      </button>
+                    )}
+                    {(issue.status === 'pending' || issue.status === 'in_progress') && (
+                      <button 
+                        className="btn-success" 
+                        onClick={() => handleStatusChange('resolved')}
+                        disabled={statusUpdating}
+                      >
+                        {statusUpdating ? 'Updating...' : 'Mark as Resolved'}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
