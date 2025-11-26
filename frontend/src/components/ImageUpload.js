@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import "./ImageUpload.css";
 
-const ImageUpload = ({ onImageSelect }) => {
+const ImageUpload = ({ onImageSelect, mlValidation }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const videoRef = useRef(null);
@@ -102,6 +102,35 @@ const ImageUpload = ({ onImageSelect }) => {
         <div className="preview-section">
           <img src={imagePreview} alt="Preview" className="uploaded-preview" />
           <p className="uploaded-text">✅ Image selected successfully!</p>
+          
+          {mlValidation?.loading && (
+            <div className="ml-validation loading">
+              <span className="spinner">⏳</span> Analyzing image with AI...
+            </div>
+          )}
+          
+          {mlValidation?.isWaste === true && (
+            <div className="ml-validation success">
+              <span className="icon">✅</span>
+              <strong>Waste Detected!</strong>
+              <span className="confidence">Confidence: {mlValidation.confidence}%</span>
+            </div>
+          )}
+          
+          {mlValidation?.isWaste === false && (
+            <div className="ml-validation error">
+              <span className="icon">❌</span>
+              <strong>No Waste Detected</strong>
+              <span className="confidence">Confidence: {mlValidation.confidence}%</span>
+              <p className="hint">Please upload an image showing waste or civic issues</p>
+            </div>
+          )}
+          
+          {mlValidation?.error && (
+            <div className="ml-validation warning">
+              <span className="icon">⚠️</span> AI validation unavailable
+            </div>
+          )}
         </div>
       )}
     </div>

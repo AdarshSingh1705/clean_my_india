@@ -18,6 +18,7 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.12.1",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.8.0",
@@ -27,7 +28,9 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
+    "node-fetch": "^3.3.2",
     "pg": "^8.16.3",
+    "sharp": "^0.34.5",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {

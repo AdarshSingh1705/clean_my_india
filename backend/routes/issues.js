@@ -6,6 +6,8 @@ const { auth, isOfficial } = require('../middleware/auth');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const cloudinary = require('../config/cloudinary');
+const tf = require('@tensorflow/tfjs');
+const sharp = require('sharp');
 
 // Configure multer for memory storage (Cloudinary)
 const storage = multer.memoryStorage();
@@ -13,7 +15,7 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 10 * 1024 * 1024 // 5MB limit
   },
   fileFilter: function (req, file, cb) {
     const filetypes = /jpeg|jpg|png|gif/;
@@ -189,6 +191,47 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     if (!title || !description || !category || !latitude || !longitude) {
       console.log('Missing required fields:', { title, description, category, latitude, longitude });
       return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Image is mandatory
+    if (!req.file) {
+      return res.status(400).json({ message: 'Image is required' });
+    }
+
+    // ML Classification
+    const wasteModel = req.app.get('wasteModel');
+    if (wasteModel) {
+      try {
+        const resized = await sharp(req.file.buffer)
+          .resize(256, 256)
+          .raw()
+          .toBuffer();
+
+        const tensor = tf.tensor3d(resized, [256, 256, 3])
+          .expandDims(0)
+          .div(255.0);
+
+        const prediction = wasteModel.predict(tensor);
+        const wasteConfidence = prediction.dataSync()[0];
+        const isWaste = wasteConfidence >= 0.5;
+
+        console.log(`ML Classification: ${isWaste ? 'Waste' : 'Not Waste'} (${(wasteConfidence * 100).toFixed(2)}%)`);
+        
+        tensor.dispose();
+        prediction.dispose();
+
+        // Reject if not waste
+        if (!isWaste) {
+          return res.status(400).json({ 
+            message: 'Image does not appear to contain waste. Please upload an image showing a civic issue.',
+            isWaste: false,
+            confidence: wasteConfidence
+          });
+        }
+      } catch (mlError) {
+        console.error('ML classification error:', mlError);
+        // Continue if ML fails
+      }
     }
 
     let image_url = null;

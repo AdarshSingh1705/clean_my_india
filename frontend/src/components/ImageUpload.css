@@ -22,12 +22,118 @@
 }
 
 .uploaded-preview {
-  width: 150px;
-  height: 150px;
+  width: 200px;
+  height: 200px;
   border-radius: 8px;
   object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .image-input {
   display: none;
+}
+
+.ml-validation {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.ml-validation.loading {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.ml-validation.success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 2px solid #4caf50;
+}
+
+.ml-validation.error {
+  background: #ffebee;
+  color: #c62828;
+  border: 2px solid #f44336;
+}
+
+.ml-validation.warning {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.ml-validation .icon {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.ml-validation .confidence {
+  display: block;
+  font-size: 12px;
+  margin-top: 5px;
+  opacity: 0.8;
+}
+
+.ml-validation .hint {
+  font-size: 12px;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.gallery-btn, .camera-btn, .capture-btn, .close-btn {
+  margin: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.gallery-btn {
+  background: #2196f3;
+  color: white;
+}
+
+.camera-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.capture-btn {
+  background: #ff9800;
+  color: white;
+}
+
+.close-btn {
+  background: #f44336;
+  color: white;
+}
+
+.camera-view {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.preview-section {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.uploaded-text {
+  color: #4caf50;
+  font-weight: bold;
+  margin-top: 10px;
 }

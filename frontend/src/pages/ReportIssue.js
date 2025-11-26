@@ -14,6 +14,7 @@ const ReportIssue = () => {
     image: null
   });
   const [location, setLocation] = useState({ latitude: null, longitude: null });
+  const [mlValidation, setMlValidation] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -64,6 +65,11 @@ const ReportIssue = () => {
       return;
     }
 
+    if (!formData.image) {
+      alert("Image is required to submit report");
+      return;
+    }
+
     const data = new FormData();
     data.append('title', formData.title);
     data.append('description', formData.description);
@@ -88,7 +94,14 @@ const ReportIssue = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error(err.response?.data || err.message);
-      alert(err.response?.data?.message || 'Something went wrong');
+      const errorMsg = err.response?.data?.message || 'Something went wrong';
+      
+      // Check if it's a waste validation error
+      if (err.response?.data?.isWaste === false) {
+        alert(`❌ ${errorMsg}\n\nThe AI model detected that this image does not contain waste or civic issues. Please upload a relevant image.`);
+      } else {
+        alert(errorMsg);
+      }
     }
   };
 
@@ -132,9 +145,29 @@ const ReportIssue = () => {
           </div>
           
           <div className="form-group">
-            <label>Image (Optional)</label>
+            <label>Image</label>
             <ImageUpload
-              onImageSelect={(file) => setFormData({ ...formData, image: file })}
+              onImageSelect={async (file) => {
+                setFormData({ ...formData, image: file });
+                setMlValidation({ loading: true });
+                
+                // Validate image with ML model
+                try {
+                  const data = new FormData();
+                  data.append('file', file);
+                  const res = await api.post('/classify', data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                  });
+                  setMlValidation({
+                    isWaste: res.data.waste,
+                    confidence: (res.data.probability * 100).toFixed(1)
+                  });
+                } catch (err) {
+                  console.error('ML validation error:', err);
+                  setMlValidation({ error: true });
+                }
+              }}
+              mlValidation={mlValidation}
             />
           </div>
 

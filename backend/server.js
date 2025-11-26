@@ -1,6 +1,9 @@
 const express = require('express');
 const port = process.env.PORT || 4000 
 const cors = require('cors');
+const tf = require('@tensorflow/tfjs');
+const sharp = require('sharp');
+const multer = require('multer');
 const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -80,6 +83,30 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 app.use('/uploads', express.static(uploadsDir));
+
+app.use('/model', express.static(path.join(__dirname, 'model')));
+
+// Load ML model
+let wasteModel;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  
+  // Load model after server starts
+  setTimeout(async () => {
+    try {
+      const modelUrl = process.env.NODE_ENV === 'production' 
+        ? `https://clean-india-j4w0.onrender.com/model/model.json`
+        : `http://localhost:${PORT}/model/model.json`;
+      wasteModel = await tf.loadLayersModel(modelUrl);
+      console.log('✅ Waste classifier model loaded');
+      app.set('wasteModel', wasteModel);
+    } catch (err) {
+      console.error('❌ Failed to load waste model:', err);
+    }
+  }, 1000);
+});
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Socket.io for real-time updates
 io.on('connection', (socket) => {
@@ -162,6 +189,41 @@ if (notificationRoutes) app.use('/api/notifications', notificationRoutes);
 
 
 
+// Waste classifier endpoint
+app.post('/api/classify', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image uploaded' });
+    }
+
+    if (!wasteModel) {
+      return res.status(503).json({ error: 'ML model not loaded yet. Please try again in a moment.' });
+    }
+
+    const resized = await sharp(req.file.buffer)
+      .resize(256, 256)
+      .raw()
+      .toBuffer();
+
+    const tensor = tf.tensor3d(resized, [256, 256, 3])
+      .expandDims(0)
+      .div(255.0);
+
+    const prediction = wasteModel.predict(tensor);
+    const prob = prediction.dataSync()[0];
+    const waste = prob >= 0.5;
+
+    tensor.dispose();
+    prediction.dispose();
+
+    console.log(`Classify API: ${waste ? 'Waste' : 'Not Waste'} (${(prob * 100).toFixed(1)}%)`);
+    res.json({ probability: prob, waste });
+  } catch (err) {
+    console.error('Classification Error:', err);
+    res.status(500).json({ error: 'Failed to classify image', details: err.message });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
@@ -188,6 +250,4 @@ process.on('uncaughtException', (err) => {
   // optionally process.exit(1) in production after logging
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
