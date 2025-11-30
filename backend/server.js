@@ -86,16 +86,39 @@ app.use('/uploads', express.static(uploadsDir));
 
 app.use('/model', express.static(path.join(__dirname, 'model')));
 
-// Load ML model using Node.js file system handler
+// Load ML model manually from JSON and weights
 let wasteModel;
 const loadModel = async () => {
   try {
-    const modelPath = path.join(__dirname, 'model', 'model.json');
-    console.log('Loading model from:', modelPath);
+    const modelDir = path.join(__dirname, 'model');
+    const modelJsonPath = path.join(modelDir, 'model.json');
     
-    // Use tfjs.io.fileSystem handler for Node.js
-    const handler = tf.io.fileSystem(modelPath);
-    wasteModel = await tf.loadLayersModel(handler);
+    console.log('Loading model from:', modelJsonPath);
+    
+    // Read model.json
+    const modelJson = JSON.parse(fs.readFileSync(modelJsonPath, 'utf8'));
+    
+    // Read weight files
+    const weightSpecs = modelJson.weightsManifest[0].paths;
+    const weightBuffers = [];
+    
+    for (const weightFile of weightSpecs) {
+      const weightPath = path.join(modelDir, weightFile);
+      const buffer = fs.readFileSync(weightPath);
+      weightBuffers.push(buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength));
+    }
+    
+    // Concatenate all weight buffers
+    const totalLength = weightBuffers.reduce((sum, buf) => sum + buf.byteLength, 0);
+    const allWeights = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const buf of weightBuffers) {
+      allWeights.set(new Uint8Array(buf), offset);
+      offset += buf.byteLength;
+    }
+    
+    // Load model from JSON and weights
+    wasteModel = await tf.loadLayersModel(tf.io.fromMemory(modelJson, allWeights));
     
     console.log('✅ Waste classifier model loaded successfully');
   } catch (err) {
