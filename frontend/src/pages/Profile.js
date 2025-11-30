@@ -1,19 +1,8 @@
-// frontend/src/pages/Profile.js (updated imports and icons)
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import './Profile.css';
-
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from "recharts";
 
 // Simple icon components
 const EditIcon = () => <span>📋</span>;
@@ -22,48 +11,63 @@ const InfoIcon = () => <span>ℹ️</span>;
 const HelpIcon = () => <span>💬</span>;
 const LogoutIcon = () => <span>🚪</span>;
 
+// -------------------------------------------
+// MAIN COMPONENT
+// -------------------------------------------
 const Profile = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, setCurrentUser, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState("info");
   const [userIssues, setUserIssues] = useState([]);
+
   const [stats, setStats] = useState({
     totalIssues: 0,
     resolvedIssues: 0,
     pendingIssues: 0,
   });
+
   const [loading, setLoading] = useState(true);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  // Editable fields
+  const [editData, setEditData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
 
+  // -------------------------
+  // LOAD USER DATA ON START
+  // -------------------------
   useEffect(() => {
-    if (currentUser) fetchUserIssues();
+    if (currentUser) {
+      fetchUserIssues();
+      setEditData({
+        name: currentUser.name,
+        email: currentUser.email,
+        phone: currentUser.phone || "",
+      });
+    }
   }, [currentUser]);
 
+  // -------------------------
+  // GET USER'S ISSUES
+  // -------------------------
   const fetchUserIssues = async () => {
     try {
       setLoading(true);
       const response = await api.get('/issues');
 
-      let allIssues = [];
-      if (Array.isArray(response.data)) allIssues = response.data;
-      else if (Array.isArray(response.data.issues)) allIssues = response.data.issues;
-      else if (response.data.issue) allIssues = [response.data.issue];
-
-      const filtered = allIssues.filter(
+      let issues = response.data.issues || response.data || [];
+      const filtered = issues.filter(
         (issue) => issue.user_id === currentUser.id
       );
 
       setUserIssues(filtered);
-
       setStats({
         totalIssues: filtered.length,
-        resolvedIssues: filtered.filter((i) => i.status === 'resolved').length,
-        pendingIssues:
-          filtered.length -
-          filtered.filter((i) => i.status === 'resolved').length,
+        resolvedIssues: filtered.filter(i => i.status === "resolved").length,
+        pendingIssues: filtered.filter(i => i.status !== "resolved").length,
       });
     } catch (err) {
       console.error(err);
@@ -72,111 +76,178 @@ const Profile = () => {
     }
   };
 
-  const chartData = [
-    { name: "Total", value: stats.totalIssues },
-    { name: "Resolved", value: stats.resolvedIssues },
-    { name: "Pending", value: stats.pendingIssues },
-  ];
+  // -------------------------
+  // HANDLE LOGOUT
+  // -------------------------
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
-  if (!currentUser) return <p className="loading">Loading...</p>;
+  // -------------------------
+  // SAVE EDITED PROFILE
+  // -------------------------
+  const saveProfile = async () => {
+    try {
+      const res = await api.put(`/auth/update-profile`, editData);
 
+      // Update Local Auth Context
+      setCurrentUser(res.data.user);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      alert("Profile updated successfully!");
+      setActiveTab("info");
+    } catch (err) {
+      console.log(err);
+      alert("Failed to update profile");
+    }
+  };
+
+  if (!currentUser) return <p>Loading...</p>;
+
+  // -------------------------------------------------------
+  // MAIN RENDER
+  // -------------------------------------------------------
   return (
     <div className="profile-container">
-      {/* Fixed Sidebar */}
+
+      {/* ------------------- SIDEBAR ------------------------ */}
       <aside className="sidebar">
         <h2 className="sidebar-title">My Profile</h2>
 
         <ul className="menu">
-          <li>
-            <EditIcon />
-            <span>Edit Profile</span>
+          <li
+            className={activeTab === "edit" ? "active" : ""}
+            onClick={() => setActiveTab("edit")}
+          >
+            <EditIcon /> Edit Profile
           </li>
-          <li>
-            <SettingsIcon />
-            <span>Settings</span>
+
+          <li
+            className={activeTab === "settings" ? "active" : ""}
+            onClick={() => setActiveTab("settings")}
+          >
+            <SettingsIcon /> Settings
           </li>
-          <li>
-            <InfoIcon />
-            <span>Info</span>
+
+          <li
+            className={activeTab === "info" ? "active" : ""}
+            onClick={() => setActiveTab("info")}
+          >
+            <InfoIcon /> Info
           </li>
-          <li>
-            <HelpIcon />
-            <span>Help</span>
+
+          <li
+            className={activeTab === "help" ? "active" : ""}
+            onClick={() => setActiveTab("help")}
+          >
+            <HelpIcon /> Help
           </li>
         </ul>
 
         <div className="logout" onClick={handleLogout}>
-          <LogoutIcon />
-          <span>Logout</span>
+          <LogoutIcon /> Logout
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* ---------------- MAIN CONTENT -------------------- */}
       <main className="main-content">
-        {/* Header */}
-        <div className="profile-header">
-          <h1>👋 Welcome, {currentUser.name}</h1>
-          <p>We're glad to have you here. Manage your reports and stay updated on progress!</p>
-        </div>
 
-        {/* User Info */}
-        <section className="user-info-card">
-          <div className="info-item">
-            <span className="info-label">📧 Email:</span>
-            <span className="info-value">{currentUser.email}</span>
-          </div>
-          <div className="info-item">
-            <span className="info-label">🧾 Role:</span>
-            <span className="info-value role-badge">{currentUser.role}</span>
-          </div>
-        </section>
-
-        {/* Stats */}
-        <section className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon total">📊</div>
-            <h3 className="stat-value">{stats.totalIssues}</h3>
-            <p className="stat-label">Total Reports</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon resolved">✅</div>
-            <h3 className="stat-value">{stats.resolvedIssues}</h3>
-            <p className="stat-label">Resolved</p>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon pending">⏳</div>
-            <h3 className="stat-value">{stats.pendingIssues}</h3>
-            <p className="stat-label">Pending</p>
-          </div>
-        </section>
-
-        {/* Issues */}
-        <section className="issues-section">
-          <h2>📝 Your Reported Issues</h2>
-
-          {loading ? (
-            <p className="loading">Loading issues...</p>
-          ) : userIssues.length === 0 ? (
-            <p className="no-issues">You haven't reported any issues yet.</p>
-          ) : (
-            <div className="issues-list">
-              {userIssues.map((issue) => (
-                <div className="issue-item" key={issue.id || issue._id}>
-                  <h3 className="issue-title">{issue.title}</h3>
-                  <p className="issue-description">{issue.description}</p>
-                  <div className="issue-meta">
-                    <span className={`status ${issue.status.replace('_', '-')}`}>
-                      {issue.status.replace('_', ' ')}
-                    </span>
-                    <span className="issue-date">
-                      {new Date(issue.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
+        {/* ✨ TAB 1: USER INFO */}
+        {activeTab === "info" && (
+          <>
+            <div className="profile-header">
+              <h1>👋 Welcome, {currentUser.name}</h1>
+              <p>Manage your reports and stay updated!</p>
             </div>
-          )}
-        </section>
+
+            <section className="user-info-card">
+              <div className="info-item">
+                <strong>Email:</strong> {currentUser.email}
+              </div>
+              <div className="info-item">
+                <strong>Phone:</strong> {currentUser.phone || "Not added"}
+              </div>
+              <div className="info-item">
+                <strong>Role:</strong> {currentUser.role}
+              </div>
+            </section>
+
+            {/* Issues List */}
+            <section className="issues-section">
+              <h2>Your Issues</h2>
+
+              {loading ? (
+                <p>Loading...</p>
+              ) : userIssues.length === 0 ? (
+                <p>No issues reported yet.</p>
+              ) : (
+                userIssues.map((issue) => (
+                  <div className="issue-item" key={issue.id}>
+                    <h3>{issue.title}</h3>
+                    <p>{issue.description}</p>
+                  </div>
+                ))
+              )}
+            </section>
+          </>
+        )}
+
+        {/* ✨ TAB 2: EDIT PROFILE */}
+        {activeTab === "edit" && (
+          <section className="edit-profile-section">
+            <h2>Edit Profile</h2>
+
+            <div className="edit-form">
+              <label>Name</label>
+              <input
+                type="text"
+                value={editData.name}
+                onChange={(e) =>
+                  setEditData({ ...editData, name: e.target.value })
+                }
+              />
+
+              <label>Email</label>
+              <input
+                type="email"
+                value={editData.email}
+                onChange={(e) =>
+                  setEditData({ ...editData, email: e.target.value })
+                }
+              />
+
+              <label>Phone</label>
+              <input
+                type="text"
+                value={editData.phone}
+                onChange={(e) =>
+                  setEditData({ ...editData, phone: e.target.value })
+                }
+              />
+
+              <button className="save-btn" onClick={saveProfile}>
+                Save Changes
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* ✨ TAB 3: SETTINGS */}
+        {activeTab === "settings" && (
+          <section className="settings-section">
+            <h2>Settings</h2>
+            <p>More settings will come soon.</p>
+          </section>
+        )}
+
+        {/* ✨ TAB 4: HELP */}
+        {activeTab === "help" && (
+          <section className="help-section">
+            <h2>Help</h2>
+            <p>Contact support at: support@cleanindia.com</p>
+          </section>
+        )}
       </main>
     </div>
   );

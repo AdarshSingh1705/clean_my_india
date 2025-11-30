@@ -108,4 +108,16 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
+router.put("/update-profile", authMiddleware, async (req, res) => {
+  const { name, email, phone } = req.body;
+  const userId = req.user.id;
+
+  const updated = await db.query(
+    "UPDATE users SET name=$1, email=$2, phone=$3 WHERE id=$4 RETURNING *",
+    [name, email, phone, userId]
+  );
+
+  res.json({ user: updated.rows[0] });
+});
+
 module.exports = router;

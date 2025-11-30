@@ -1,22 +1,42 @@
 import React, { useState, useRef } from "react";
 import "./ImageUpload.css";
 
-const ImageUpload = ({ onImageSelect }) => {
+const ImageUpload = ({ onImageSelect, onLocationDetect }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // 🔵 Auto-detect location after selecting or capturing image
+  const detectLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          onLocationDetect({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          });
+        },
+        (err) => console.error("Location error:", err)
+      );
+    }
+  };
+
+  // 📁 Choose from gallery
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setImagePreview(imageUrl);
       onImageSelect(file);
+
+      detectLocation(); // 🔵 Auto-location on file choose
     }
   };
 
+  // 🎥 Open camera
   const openCamera = async () => {
     setIsCameraOpen(true);
     try {
@@ -29,6 +49,7 @@ const ImageUpload = ({ onImageSelect }) => {
     }
   };
 
+  // 📸 Capture from camera
   const takePhoto = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -41,18 +62,21 @@ const ImageUpload = ({ onImageSelect }) => {
     canvas.toBlob((blob) => {
       const file = new File([blob], "captured.jpg", { type: "image/jpeg" });
       const imageUrl = URL.createObjectURL(file);
+
       setImagePreview(imageUrl);
       onImageSelect(file);
-    }, "image/jpeg");
+
+      detectLocation(); // 🔵 Auto-location on camera photo
+    });
 
     stopCamera();
   };
 
+  // ❌ Close camera
   const stopCamera = () => {
     const stream = videoRef.current?.srcObject;
     if (stream) {
-      const tracks = stream.getTracks();
-      tracks.forEach((track) => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
     }
     setIsCameraOpen(false);
   };
@@ -109,4 +133,3 @@ const ImageUpload = ({ onImageSelect }) => {
 };
 
 export default ImageUpload;
-

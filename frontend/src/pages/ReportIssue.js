@@ -4,7 +4,16 @@ import api from '../services/api';  // use your configured axios instance
 import { useNavigate } from 'react-router-dom';
 import './ReportIssue.css';
 import ImageUpload from "../components/ImageUpload";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
 
+
+const markerIcon = new L.Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
 
 const ReportIssue = () => {
   const [formData, setFormData] = useState({
@@ -152,6 +161,29 @@ const ReportIssue = () => {
                 Location: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
               </p>
             )}
+         
+               {location.latitude && location.longitude && (
+  <div className="map-wrapper">
+    <MapContainer
+  center={[location.latitude, location.longitude]}
+  zoom={17}
+  scrollWheelZoom={false}
+  className="leaflet-container"
+>
+
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <Marker
+        position={[location.latitude, location.longitude]}
+        icon={markerIcon}
+      >
+        <Popup>Your Location</Popup>
+      </Marker>
+    </MapContainer>
+  </div>
+)}
+
+
+
           </div>
           
           <button type="submit" className="submit-btn">Submit Report</button>
