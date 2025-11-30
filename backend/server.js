@@ -1,6 +1,8 @@
 const express = require('express');
 const port = process.env.PORT || 4000 
 const cors = require('cors');
+const fetch = require('node-fetch');
+global.fetch = fetch;
 const tf = require('@tensorflow/tfjs');
 const sharp = require('sharp');
 const multer = require('multer');
@@ -88,16 +90,20 @@ app.use('/model', express.static(path.join(__dirname, 'model')));
 
 // Load ML model from file system
 let wasteModel;
-(async () => {
+const loadModel = async () => {
   try {
     const modelPath = path.join(__dirname, 'model', 'model.json');
-    console.log('Loading model from:', modelPath);
-    wasteModel = await tf.loadLayersModel(`file://${modelPath}`);
+    const modelUrl = `file://${modelPath.replace(/\\/g, '/')}`;
+    console.log('Loading model from:', modelUrl);
+    wasteModel = await tf.loadLayersModel(modelUrl);
     console.log('✅ Waste classifier model loaded successfully');
   } catch (err) {
     console.error('❌ Failed to load waste model:', err.message);
+    console.error('Full error:', err);
   }
-})();
+};
+
+loadModel();
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
