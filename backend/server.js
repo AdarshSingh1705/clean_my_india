@@ -86,24 +86,21 @@ app.use('/uploads', express.static(uploadsDir));
 
 app.use('/model', express.static(path.join(__dirname, 'model')));
 
-// Load ML model
+// Load ML model from file system
 let wasteModel;
+(async () => {
+  try {
+    const modelPath = path.join(__dirname, 'model', 'model.json');
+    console.log('Loading model from:', modelPath);
+    wasteModel = await tf.loadLayersModel(`file://${modelPath}`);
+    console.log('✅ Waste classifier model loaded successfully');
+  } catch (err) {
+    console.error('❌ Failed to load waste model:', err.message);
+  }
+})();
+
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  
-  // Load model after server starts
-  setTimeout(async () => {
-    try {
-      const modelUrl = process.env.NODE_ENV === 'production' 
-        ? `https://clean-india-j4w0.onrender.com/model/model.json`
-        : `http://localhost:${PORT}/model/model.json`;
-      wasteModel = await tf.loadLayersModel(modelUrl);
-      console.log('✅ Waste classifier model loaded');
-      app.set('wasteModel', wasteModel);
-    } catch (err) {
-      console.error('❌ Failed to load waste model:', err);
-    }
-  }, 1000);
 });
 
 const upload = multer({ storage: multer.memoryStorage() });
