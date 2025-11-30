@@ -117,18 +117,29 @@ const loadModel = async () => {
       offset += buf.byteLength;
     }
     
-    // Load model from JSON and weights
-    wasteModel = await tf.loadLayersModel(tf.io.fromMemory(modelJson, allWeights));
+    // Create ModelArtifacts object
+    const modelArtifacts = {
+      modelTopology: modelJson.modelTopology,
+      weightSpecs: modelJson.weightsManifest[0].weights,
+      weightData: allWeights.buffer,
+      format: modelJson.format,
+      generatedBy: modelJson.generatedBy,
+      convertedBy: modelJson.convertedBy
+    };
+    
+    // Load model from artifacts
+    wasteModel = await tf.loadLayersModel(tf.io.fromMemory(modelArtifacts));
+    app.set('wasteModel', wasteModel);
     
     console.log('✅ Waste classifier model loaded successfully');
   } catch (err) {
     console.error('❌ Failed to load waste model:', err.message);
-    console.error('Error details:', err);
+    // Don't crash the server if model fails to load
   }
 };
 
-// Load model immediately
-loadModel();
+// Load model after a short delay to ensure app is initialized
+setTimeout(loadModel, 100);
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
