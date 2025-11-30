@@ -13,8 +13,33 @@ export const SocketProvider = ({ children }) => {
   const { currentUser } = useAuth(); 
 
   useEffect(() => {
-    // Socket disabled - not working on Render
-    setSocket(null);
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+    const SOCKET_URL = API_URL.replace('/api', '');
+
+    const newSocket = io(SOCKET_URL, {
+      transports: ['polling', 'websocket'],
+      auth: {
+        token: localStorage.getItem('token')
+      }
+    });
+
+    newSocket.on('connect', () => {
+      console.log('✅ Socket connected:', newSocket.id);
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('❌ Socket disconnected');
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.close();
+    };
   }, [currentUser]);
 
   return (

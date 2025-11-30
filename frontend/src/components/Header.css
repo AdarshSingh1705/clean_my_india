@@ -11,6 +11,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 .logo{
   text-decoration: none;
@@ -27,6 +30,24 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+.mobile-menu-btn {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.mobile-menu-btn span {
+  width: 25px;
+  height: 3px;
+  background: white;
+  border-radius: 2px;
+  transition: 0.3s;
 }
 
 .nav a {
@@ -120,4 +141,80 @@
 .auth-links {
   display: flex;
   gap: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .mobile-menu-btn {
+    display: flex;
+    z-index: 120;
+  }
+  
+  .nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    height: 100vh;
+    background: #2c3e50;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 5rem 2rem 2rem;
+    gap: 1.5rem;
+    transition: right 0.3s ease;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+    z-index: 100;
+  }
+  
+  .nav.mobile-open {
+    right: 0;
+  }
+  
+  .nav a {
+    width: 100%;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .user-menu {
+    width: 100%;
+  }
+  
+  .user-menu-trigger {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .user-menu-dropdown {
+    position: static;
+    width: 100%;
+    margin-top: 0.5rem;
+    box-shadow: none;
+  }
+  
+  .auth-links {
+    flex-direction: column;
+    width: 100%;
+    gap: 0;
+  }
+  
+  .auth-links a {
+    width: 100%;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  .logo h1 {
+    font-size: 1.2rem;
+  }
+  
+  .user-greeting {
+    display: none;
+  }
+  
+  .header {
+    padding: 1rem 0;
+  }
 }

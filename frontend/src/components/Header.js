@@ -8,6 +8,7 @@ const Header = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const handleLogout = () => {
     logout();
@@ -38,7 +39,14 @@ const Header = () => {
         <Link to="/" className="logo">
           <h1>Clean My India</h1>
         </Link>
-        <nav className="nav">
+        
+        <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        
+        <nav className={`nav ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           <Link to="/">Home</Link>
           <Link to="/issues">Issues</Link>
           <Link to="/about">About</Link>
@@ -55,9 +63,8 @@ const Header = () => {
               <Notifications />
               
               <div className="user-menu">
-        
                 <div className="user-menu-trigger" onClick={toggleMenu}>
-                  <span>Hello, {currentUser.name}</span>
+                  <span className="user-greeting">Hello, {currentUser.name}</span>
                   <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Jhon?size=30px" className="Avatar" loading="lazy" alt="Avatar1" />
                 </div>
                 <div className={`user-menu-dropdown ${isMenuOpen ? 'show' : ''}`}>
