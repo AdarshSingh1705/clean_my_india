@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 const router = express.Router();
-const { auth } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');  // ✅ This is correct
 
 // Register new user
 router.post('/register', async (req, res) => {
@@ -108,16 +108,31 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-router.put("/update-profile", authMiddleware, async (req, res) => {
-  const { name, email, phone } = req.body;
-  const userId = req.user.id;
+// FIXED UPDATE PROFILE ROUTE
+router.put("/update-profile", auth, async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+    const userId = req.user.id;
 
-  const updated = await db.query(
-    "UPDATE users SET name=$1, email=$2, phone=$3 WHERE id=$4 RETURNING *",
-    [name, email, phone, userId]
-  );
+    const updated = await pool.query(
+      "UPDATE users SET name=$1, email=$2, phone=$3 WHERE id=$4 RETURNING id, name, email, role, ward_number, phone, created_at",
+      [name, email, phone || null, userId]
+    );
 
-  res.json({ user: updated.rows[0] });
+    if (updated.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      message: "Profile updated successfully",
+      user: updated.rows[0]
+    });
+
+  } catch (err) {
+    console.error("Update profile error:", err.message);
+    res.status(500).json({ message: "Failed to update profile" });
+  }
 });
+
 
 module.exports = router;

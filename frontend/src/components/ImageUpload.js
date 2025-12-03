@@ -4,12 +4,11 @@ import "./ImageUpload.css";
 const ImageUpload = ({ onImageSelect, onLocationDetect }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // 🔵 Auto-detect location after selecting or capturing image
+  // Detect location ONLY when image is selected/captured
   const detectLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -24,19 +23,19 @@ const ImageUpload = ({ onImageSelect, onLocationDetect }) => {
     }
   };
 
-  // 📁 Choose from gallery
+  // 📁 Gallery Upload (YES, fetch location)
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setImagePreview(imageUrl);
-      onImageSelect(file);
 
-      detectLocation(); // 🔵 Auto-location on file choose
+      onImageSelect(file);
+      detectLocation(); // ✅ Location after gallery upload
     }
   };
 
-  // 🎥 Open camera
+  // 🎥 Open Camera
   const openCamera = async () => {
     setIsCameraOpen(true);
     try {
@@ -44,12 +43,11 @@ const ImageUpload = ({ onImageSelect, onLocationDetect }) => {
       videoRef.current.srcObject = stream;
     } catch (err) {
       alert("Camera access denied or unavailable.");
-      console.error(err);
       setIsCameraOpen(false);
     }
   };
 
-  // 📸 Capture from camera
+  // 📸 Take Photo (YES, fetch location)
   const takePhoto = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -59,25 +57,25 @@ const ImageUpload = ({ onImageSelect, onLocationDetect }) => {
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    canvas.toBlob((blob) => {
-      const file = new File([blob], "captured.jpg", { type: "image/jpeg" });
-      const imageUrl = URL.createObjectURL(file);
+    canvas.toBlob(
+      (blob) => {
+        const file = new File([blob], "captured.jpg", { type: "image/jpeg" });
+        const imageUrl = URL.createObjectURL(file);
 
-      setImagePreview(imageUrl);
-      onImageSelect(file);
+        setImagePreview(imageUrl);
+        onImageSelect(file);
 
-      detectLocation(); // 🔵 Auto-location on camera photo
-    });
+        detectLocation(); // ✅ Location after camera capture
+      },
+      "image/jpeg"
+    );
 
     stopCamera();
   };
 
-  // ❌ Close camera
   const stopCamera = () => {
     const stream = videoRef.current?.srcObject;
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-    }
+    if (stream) stream.getTracks().forEach((track) => track.stop());
     setIsCameraOpen(false);
   };
 
@@ -118,6 +116,7 @@ const ImageUpload = ({ onImageSelect, onLocationDetect }) => {
           <button type="button" onClick={stopCamera} className="close-btn">
             ❌ Close
           </button>
+
           <canvas ref={canvasRef} style={{ display: "none" }} />
         </div>
       )}
@@ -125,7 +124,6 @@ const ImageUpload = ({ onImageSelect, onLocationDetect }) => {
       {imagePreview && (
         <div className="preview-section">
           <img src={imagePreview} alt="Preview" className="uploaded-preview" />
-          <p className="uploaded-text">✅ Image selected successfully!</p>
         </div>
       )}
     </div>
