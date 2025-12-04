@@ -109,6 +109,74 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Forgot Password - Send Reset Email
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    const result = await pool.query(
+      'SELECT id, name, email FROM users WHERE email = $1',
+      [email]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Email not found' });
+    }
+    
+    const user = result.rows[0];
+    
+    // Generate reset token (valid for 1 hour)
+    const resetToken = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    
+    // Send email
+    const EmailService = require('../services/EmailService');
+    await EmailService.sendPasswordResetEmail(user.email, user.name, resetToken);
+    
+    res.json({ message: 'Password reset email sent. Please check your inbox.' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Reset Password with Token
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, new_password } = req.body;
+    
+    if (!token || !new_password) {
+      return res.status(400).json({ message: 'Token and new password are required' });
+    }
+    
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+    
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(new_password, salt);
+    
+    // Update password
+    await pool.query(
+      'UPDATE users SET password = $1 WHERE id = $2',
+      [hashedPassword, decoded.id]
+    );
+    
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get current user
 router.get('/me', auth, async (req, res) => {
   try {

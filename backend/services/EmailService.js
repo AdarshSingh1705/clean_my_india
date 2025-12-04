@@ -115,6 +115,41 @@ class EmailService {
     );
   }
 
+  async sendPasswordResetEmail(userEmail, userName, resetToken) {
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">🔐 Password Reset Request</h2>
+        <p>Hello ${userName},</p>
+        <p>We received a request to reset your password for your Clean My India account.</p>
+        <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 10px 0;">Click the button below to reset your password:</p>
+          <a href="${resetLink}" 
+             style="background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">
+            Reset Password
+          </a>
+          <p style="margin: 10px 0; font-size: 12px; color: #6b7280;">
+            Or copy this link: <br>
+            <a href="${resetLink}" style="color: #2563eb; word-break: break-all;">${resetLink}</a>
+          </p>
+        </div>
+        <p style="color: #dc2626; font-weight: bold;">⚠️ This link will expire in 1 hour.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+        <p style="color: #6b7280; font-size: 12px;">
+          This is an automated message from Clean My India. Please do not reply to this email.
+        </p>
+      </div>
+    `;
+
+    await this.sendEmail(
+      userEmail,
+      '🔐 Reset Your Password - Clean My India',
+      html
+    );
+  }
+
   async sendIssueResolvedNotification(userEmail, userName, issueTitle) {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
