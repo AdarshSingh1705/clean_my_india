@@ -339,13 +339,36 @@ router.patch('/:id/status', auth, isOfficial, async (req, res) => {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
+    // Get old status and user info
+    const issueData = await pool.query(
+      'SELECT issues.*, users.email, users.name FROM issues LEFT JOIN users ON issues.created_by = users.id WHERE issues.id = $1',
+      [id]
+    );
+    
+    if (issueData.rows.length === 0) {
+      return res.status(404).json({ message: 'Issue not found' });
+    }
+    
+    const oldStatus = issueData.rows[0].status;
+    const userEmail = issueData.rows[0].email;
+    const userName = issueData.rows[0].name;
+    const issueTitle = issueData.rows[0].title;
+
     const updatedIssue = await pool.query(
       'UPDATE issues SET status = $1, updated_at = $2, resolved_at = $3 WHERE id = $4 RETURNING *',
       [status, new Date(), status === 'resolved' ? new Date() : null, id]
     );
 
-    if (updatedIssue.rows.length === 0) {
-      return res.status(404).json({ message: 'Issue not found' });
+    // Send email notification
+    try {
+      const EmailService = require('../services/EmailService');
+      if (status === 'resolved') {
+        await EmailService.sendIssueResolvedNotification(userEmail, userName, issueTitle);
+      } else {
+        await EmailService.sendIssueStatusUpdate(userEmail, userName, issueTitle, oldStatus, status);
+      }
+    } catch (emailError) {
+      console.error('Email notification error:', emailError.message);
     }
 
     const io = req.app.get('io');
@@ -492,6 +515,12 @@ router.post('/:id/comment', auth, async (req, res) => {
       return res.status(400).json({ message: 'Text is required' });
     }
 
+    // Get issue creator info
+    const issueData = await pool.query(
+      'SELECT issues.title, issues.created_by, users.email, users.name FROM issues LEFT JOIN users ON issues.created_by = users.id WHERE issues.id = $1',
+      [id]
+    );
+
     const newComment = await pool.query(
       'INSERT INTO comments (issue_id, user_id, text) VALUES ($1, $2, $3) RETURNING *',
       [id, req.user.id, text]
@@ -504,6 +533,22 @@ router.post('/:id/comment', auth, async (req, res) => {
        WHERE comments.id = $1`,
       [newComment.rows[0].id]
     );
+
+    // Send email notification to issue creator (if not commenting on own issue)
+    if (issueData.rows.length > 0 && issueData.rows[0].created_by !== req.user.id) {
+      try {
+        const EmailService = require('../services/EmailService');
+        await EmailService.sendNewCommentNotification(
+          issueData.rows[0].email,
+          issueData.rows[0].name,
+          issueData.rows[0].title,
+          commentWithUser.rows[0].user_name,
+          text
+        );
+      } catch (emailError) {
+        console.error('Email notification error:', emailError.message);
+      }
+    }
 
     res.status(201).json(commentWithUser.rows[0]);
   } catch (err) {
