@@ -8,9 +8,12 @@ class EmailService {
 
   initializeTransporter() {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('⚠️ Email credentials not configured. Email notifications disabled.');
+      console.log('⚠️ Email credentials not configured. EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET');
+      console.log('⚠️ EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'NOT SET');
       return;
     }
+
+    console.log('📧 Initializing email service with:', process.env.EMAIL_USER);
 
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
@@ -19,6 +22,9 @@ class EmailService {
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
 
@@ -27,9 +33,12 @@ class EmailService {
 
   async sendEmail(to, subject, html) {
     if (!this.transporter) {
-      console.log('Email service not configured, skipping email to:', to);
-      return;
+      console.log('❌ Email service not configured, skipping email to:', to);
+      throw new Error('Email service not initialized');
     }
+
+    console.log('📤 Attempting to send email to:', to);
+    console.log('📤 Subject:', subject);
 
     try {
       const mailOptions = {
@@ -39,11 +48,15 @@ class EmailService {
         html
       };
 
+      console.log('📤 Sending email with options:', { from: mailOptions.from, to: mailOptions.to });
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('✅ Email sent:', info.messageId);
+      console.log('✅ Email sent successfully! MessageId:', info.messageId);
       return info;
     } catch (error) {
-      console.error('❌ Email send error:', error.message);
+      console.error('❌ Email send error - Full details:');
+      console.error('Error message:', error.message);
+      console.error('Error code:', error.code);
+      console.error('Error stack:', error.stack);
       throw error;
     }
   }
@@ -113,41 +126,6 @@ class EmailService {
     await this.sendEmail(
       userEmail,
       `New comment on: ${issueTitle}`,
-      html
-    );
-  }
-
-  async sendPasswordResetEmail(userEmail, userName, resetToken) {
-    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
-    
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">🔐 Password Reset Request</h2>
-        <p>Hello ${userName},</p>
-        <p>We received a request to reset your password for your Clean My India account.</p>
-        <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 10px 0;">Click the button below to reset your password:</p>
-          <a href="${resetLink}" 
-             style="background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">
-            Reset Password
-          </a>
-          <p style="margin: 10px 0; font-size: 12px; color: #6b7280;">
-            Or copy this link: <br>
-            <a href="${resetLink}" style="color: #2563eb; word-break: break-all;">${resetLink}</a>
-          </p>
-        </div>
-        <p style="color: #dc2626; font-weight: bold;">⚠️ This link will expire in 1 hour.</p>
-        <p>If you didn't request this, please ignore this email.</p>
-        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-        <p style="color: #6b7280; font-size: 12px;">
-          This is an automated message from Clean My India. Please do not reply to this email.
-        </p>
-      </div>
-    `;
-
-    await this.sendEmail(
-      userEmail,
-      '🔐 Reset Your Password - Clean My India',
       html
     );
   }

@@ -112,6 +112,7 @@ router.post('/login', async (req, res) => {
 // Forgot Password - Send Reset Email
 router.post('/forgot-password', async (req, res) => {
   try {
+    console.log('🔑 Forgot password request for:', req.body.email);
     const { email } = req.body;
     
     const result = await pool.query(
@@ -120,10 +121,12 @@ router.post('/forgot-password', async (req, res) => {
     );
     
     if (result.rows.length === 0) {
+      console.log('❌ User not found:', email);
       return res.status(404).json({ message: 'Email not found' });
     }
     
     const user = result.rows[0];
+    console.log('✅ User found:', user.name, user.email);
     
     // Generate reset token (valid for 1 hour)
     const resetToken = jwt.sign(
@@ -131,15 +134,20 @@ router.post('/forgot-password', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
+    console.log('✅ Reset token generated');
     
     // Send email
+    console.log('📧 Attempting to send reset email...');
     const EmailService = require('../services/EmailService');
     await EmailService.sendPasswordResetEmail(user.email, user.name, resetToken);
+    console.log('✅ Reset email sent successfully');
     
     res.json({ message: 'Password reset email sent. Please check your inbox.' });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Forgot password error - Full details:');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ message: 'Failed to send reset email', error: error.message });
   }
 });
 
