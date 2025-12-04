@@ -20,6 +20,9 @@ const IssueDetail = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [userLiked, setUserLiked] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
 
   useEffect(() => {
@@ -171,6 +174,24 @@ const IssueDetail = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (deleteConfirmText !== issue.title) {
+      alert('Please type the issue title exactly to confirm deletion');
+      return;
+    }
+    
+    setDeleting(true);
+    try {
+      await api.delete(`/issues/${id}`);
+      alert('Issue deleted successfully');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error deleting issue:', error);
+      alert(error.response?.data?.message || 'Failed to delete issue');
+      setDeleting(false);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -265,6 +286,13 @@ const IssueDetail = () => {
                         {statusUpdating ? 'Updating...' : 'Mark as Resolved'}
                       </button>
                     )}
+                    <button 
+                      className="btn-danger" 
+                      onClick={() => setShowDeleteModal(true)}
+                      style={{ marginLeft: '10px', background: '#dc3545' }}
+                    >
+                      Delete Issue
+                    </button>
                   </div>
                 )}
               </div>
@@ -444,6 +472,78 @@ const IssueDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '2rem',
+            borderRadius: '8px',
+            maxWidth: '500px',
+            width: '90%'
+          }}>
+            <h2 style={{ color: '#dc3545', marginBottom: '1rem' }}>⚠️ Delete Issue</h2>
+            <p style={{ marginBottom: '1rem' }}>This action cannot be undone. This will permanently delete the issue, all comments, and likes.</p>
+            <p style={{ marginBottom: '1rem' }}>Please type <strong>{issue.title}</strong> to confirm.</p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="Type issue title here"
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                marginBottom: '1rem',
+                border: '1px solid #ddd',
+                borderRadius: '4px'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText('');
+                }}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  background: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting || deleteConfirmText !== issue.title}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: 'none',
+                  borderRadius: '4px',
+                  background: deleteConfirmText === issue.title ? '#dc3545' : '#ccc',
+                  color: 'white',
+                  cursor: deleteConfirmText === issue.title ? 'pointer' : 'not-allowed'
+                }}
+              >
+                {deleting ? 'Deleting...' : 'Delete Issue'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -10,7 +10,7 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     role: 'citizen',
-    ward_number: ''
+    pin_code: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ const Register = () => {
       email: formData.email,
       password: formData.password,
       role: formData.role,
-      ward_number: formData.role === 'official' ? parseInt(formData.ward_number) : null
+      pin_code: formData.pin_code
     };
     
     console.log('Sending registration data:', registrationData);
@@ -104,20 +104,17 @@ const Register = () => {
               onChange={handleChange}
               required
             />
-            <select name="role" value={formData.role} onChange={handleChange}>
-              <option value="citizen">Citizen</option>
-              <option value="official">Municipal Official</option>
-            </select>
-            {formData.role === 'official' && (
-              <input
-                type="number"
-                name="ward_number"
-                placeholder="Ward Number"
-                value={formData.ward_number}
-                onChange={handleChange}
-                required
-              />
-            )}
+            <input
+              type="text"
+              name="pin_code"
+              placeholder="Pin Code"
+              value={formData.pin_code}
+              onChange={handleChange}
+              required
+              maxLength="6"
+              pattern="[0-9]{6}"
+              title="Please enter a valid 6-digit pin code"
+            />
             <button type="submit" disabled={loading} className="cta-button">
               {loading ? 'Registering...' : 'Register'}
             </button>

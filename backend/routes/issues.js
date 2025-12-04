@@ -450,6 +450,37 @@ router.delete('/:id/like', auth, async (req, res) => {
 });
 
 /**
+ * ✅ Protected: Delete issue (creator or official only)
+ */
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const issueResult = await pool.query('SELECT * FROM issues WHERE id = $1', [id]);
+    if (issueResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Issue not found' });
+    }
+
+    const issue = issueResult.rows[0];
+    if (issue.created_by !== req.user.id && req.user.role !== 'official') {
+      return res.status(403).json({ message: 'Not authorized to delete this issue' });
+    }
+
+    await pool.query('DELETE FROM comments WHERE issue_id = $1', [id]);
+    await pool.query('DELETE FROM likes WHERE issue_id = $1', [id]);
+    await pool.query('DELETE FROM issues WHERE id = $1', [id]);
+
+    const io = req.app.get('io');
+    if (io) io.emit('issue-deleted', { id });
+
+    res.json({ message: 'Issue deleted successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * ✅ Protected: Add comment
  */
 router.post('/:id/comment', auth, async (req, res) => {

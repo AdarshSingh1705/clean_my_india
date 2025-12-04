@@ -15,6 +15,7 @@ const ReportIssue = () => {
   });
   const [location, setLocation] = useState({ latitude: null, longitude: null });
   const [mlValidation, setMlValidation] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -51,6 +52,9 @@ const ReportIssue = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (submitting) return;
+    
     const user = JSON.parse(localStorage.getItem('user'));
     const token = localStorage.getItem('token');
 
@@ -69,6 +73,8 @@ const ReportIssue = () => {
       alert("Image is required to submit report");
       return;
     }
+    
+    setSubmitting(true);
 
     const data = new FormData();
     data.append('title', formData.title);
@@ -102,6 +108,7 @@ const ReportIssue = () => {
       } else {
         alert(errorMsg);
       }
+      setSubmitting(false);
     }
   };
 
@@ -184,7 +191,9 @@ const ReportIssue = () => {
             )}
           </div>
           
-          <button type="submit" className="submit-btn">Submit Report</button>
+          <button type="submit" className="submit-btn" disabled={submitting}>
+            {submitting ? 'Submitting...' : 'Submit Report'}
+          </button>
         </form>
       </div>
     </div>

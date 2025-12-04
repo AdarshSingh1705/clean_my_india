@@ -19,11 +19,11 @@ router.post('/register', async (req, res) => {
     console.log('[register] Request body:', req.body);
     console.log('[register] Content-Type:', req.headers['content-type']);
 
-    const { name, email, password, role, ward_number } = req.body;
+    const { name, email, password, role, pin_code } = req.body;
 
     // Validate input
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Name, email, and password are required' });
+    if (!name || !email || !password || !pin_code) {
+      return res.status(400).json({ message: 'Name, email, password, and pin code are required' });
     }
 
     // Check if user exists
@@ -42,10 +42,10 @@ router.post('/register', async (req, res) => {
     // Create user
     console.log('[register] Attempting to insert user into database...');
     const newUser = await pool.query(
-      `INSERT INTO users (name, email, password, role, ward_number) 
+      `INSERT INTO users (name, email, password, role, pin_code) 
        VALUES ($1, $2, $3, $4, $5) 
-       RETURNING id, name, email, role, ward_number, created_at`,
-      [name, email, hashedPassword, role || 'citizen', ward_number || null]
+       RETURNING id, name, email, role, pin_code, created_at`,
+      [name, email, hashedPassword, role || 'citizen', pin_code]
     );
     console.log('[register] User inserted successfully:', newUser.rows[0]);
 
