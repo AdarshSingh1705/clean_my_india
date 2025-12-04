@@ -11,6 +11,7 @@ const compression = require('compression');
 const fs = require('fs');
 const errorHandler = require('./middleware/errorHandler');
 const NotificationService = require('./services/NotificationService');
+const EmailService = require('./services/EmailService');
 
 // load env early and robustly
 if (process.env.NODE_ENV === 'production') {
