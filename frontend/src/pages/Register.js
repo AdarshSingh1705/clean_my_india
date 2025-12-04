@@ -66,7 +66,7 @@ const Register = () => {
     <div className="register-page">
       <div className="container">
         <div className="register-form">
-          <h2>Join Clean My India</h2>
+          <h2>Join Clean India</h2>
           {error && <div className="error-message">{error}</div>}
           <form onSubmit={handleSubmit}>
             <input

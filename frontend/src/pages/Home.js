@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import HeroSection from '../components/HeroSection';
+import api from '../services/api';
 import './Home.css';
 
 const Home = () => {
+  const [stats, setStats] = useState({
+    totalIssues: 0,
+    resolvedIssues: 0,
+    activeUsers: 0,
+    citiesCovered: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await api.get('/stats');
+      setStats(response.data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="home">
       <HeroSection />
@@ -35,19 +59,19 @@ const Home = () => {
           <h2>Our Impact So Far</h2>
           <div className="stats-grid">
             <div className="stat">
-              <h3>1,245</h3>
+              <h3>{loading ? '...' : stats.totalIssues.toLocaleString()}</h3>
               <p>🗂️ Issues Reported</p>
             </div>
             <div className="stat">
-              <h3>893</h3>
+              <h3>{loading ? '...' : stats.resolvedIssues.toLocaleString()}</h3>
               <p>✅ Issues Resolved</p>
             </div>
             <div className="stat">
-              <h3>4,521</h3>
+              <h3>{loading ? '...' : stats.activeUsers.toLocaleString()}</h3>
               <p>👥 Active Users</p>
             </div>
             <div className="stat">
-              <h3>42</h3>
+              <h3>{loading ? '...' : stats.citiesCovered}</h3>
               <p>🏙️ Cities Covered</p>
             </div>
           </div>

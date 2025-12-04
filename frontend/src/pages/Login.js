@@ -38,7 +38,7 @@ const Login = () => {
     <div className="login-page">
       <div className="container">
         <div className="login-form">
-          <h2>Login to Clean My India</h2>
+          <h2>Login to Clean India</h2>
           {error && <div className="error-message">{error}</div>}
           <form onSubmit={handleSubmit}>
             <input

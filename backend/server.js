@@ -173,7 +173,7 @@ app.set('io', io);
 app.locals.NotificationService = NotificationService;
 
 // Routes: import with safety logs so import-time errors are visible
-let authRoutes, userRoutes, issueRoutes, commentRoutes, likeRoutes, adminRoutes, notificationRoutes;
+let authRoutes, userRoutes, issueRoutes, commentRoutes, likeRoutes, adminRoutes, notificationRoutes, statsRoutes;
 try {
   authRoutes = require('./routes/auth');
   console.log('Loaded auth routes');
@@ -216,6 +216,12 @@ try {
 } catch (err) {
   console.error('Failed to load notification routes:', err);
 }
+try {
+  statsRoutes = require('./routes/stats');
+  console.log('Loaded stats routes');
+} catch (err) {
+  console.error('Failed to load stats routes:', err);
+}
 
 // Mount only those that loaded successfully
 if (authRoutes) app.use('/api/auth', authRoutes);
@@ -225,6 +231,7 @@ if (commentRoutes) app.use('/api/comments', commentRoutes);
 if (likeRoutes) app.use('/api/likes', likeRoutes);
 if (adminRoutes) app.use('/api/admin', adminRoutes);
 if (notificationRoutes) app.use('/api/notifications', notificationRoutes);
+if (statsRoutes) app.use('/api/stats', statsRoutes);
 
 
 
