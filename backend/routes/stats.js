@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
     let citiesCovered = 0;
     try {
       const citiesCoveredResult = await pool.query(
-        'SELECT COUNT(DISTINCT pin_code) FROM users WHERE pin_code IS NOT NULL AND pin_code != \'\''
+        'SELECT COUNT(DISTINCT ward_number) FROM users WHERE ward_number IS NOT NULL'
       );
       console.log('Cities covered query result:', citiesCoveredResult.rows[0]);
       citiesCovered = parseInt(citiesCoveredResult.rows[0].count) || 0;

@@ -17,15 +17,18 @@ class EmailService {
 
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       },
       tls: {
         rejectUnauthorized: false
-      }
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000
     });
 
     console.log('✅ Email service initialized');
@@ -49,7 +52,13 @@ class EmailService {
       };
 
       console.log('📤 Sending email with options:', { from: mailOptions.from, to: mailOptions.to });
-      const info = await this.transporter.sendMail(mailOptions);
+      
+      const info = await Promise.race([
+        this.transporter.sendMail(mailOptions),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Email timeout after 15s')), 15000)
+        )
+      ]);
       console.log('✅ Email sent successfully! MessageId:', info.messageId);
       return info;
     } catch (error) {
