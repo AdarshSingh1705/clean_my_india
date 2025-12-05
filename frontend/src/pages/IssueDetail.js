@@ -23,6 +23,11 @@ const IssueDetail = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [showProofModal, setShowProofModal] = useState(false);
+  const [proofImage, setProofImage] = useState(null);
+  const [proofPreview, setProofPreview] = useState(null);
+  const [mlVerification, setMlVerification] = useState(null);
+  const [targetStatus, setTargetStatus] = useState(null);
 
 
   useEffect(() => {
@@ -161,6 +166,13 @@ const IssueDetail = () => {
   const handleStatusChange = async (newStatus) => {
     if (!currentUser || currentUser.role !== 'official') return;
     
+    // Require proof for resolved/closed
+    if (newStatus === 'resolved' || newStatus === 'closed') {
+      setTargetStatus(newStatus);
+      setShowProofModal(true);
+      return;
+    }
+    
     setStatusUpdating(true);
     try {
       await api.patch(`/issues/${id}/status`, { status: newStatus });
@@ -168,6 +180,57 @@ const IssueDetail = () => {
       alert(`Issue status updated to ${newStatus.replace('_', ' ')}`);
     } catch (error) {
       console.error('Error updating status:', error);
+      alert(error.response?.data?.message || 'Failed to update status');
+    } finally {
+      setStatusUpdating(false);
+    }
+  };
+
+  const handleProofImageSelect = async (file) => {
+    setProofImage(file);
+    setProofPreview(URL.createObjectURL(file));
+    setMlVerification({ loading: true });
+    
+    // Verify with ML
+    try {
+      const data = new FormData();
+      data.append('file', file);
+      const res = await api.post('/classify', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setMlVerification({
+        isWaste: res.data.waste,
+        confidence: (res.data.probability * 100).toFixed(1)
+      });
+    } catch (err) {
+      console.error('ML verification error:', err);
+      setMlVerification({ error: true });
+    }
+  };
+
+  const submitProofAndResolve = async () => {
+    if (!proofImage) {
+      alert('Please upload proof image');
+      return;
+    }
+
+    setStatusUpdating(true);
+    try {
+      const formData = new FormData();
+      formData.append('status', targetStatus);
+      formData.append('proof_image', proofImage);
+      
+      await api.patch(`/issues/${id}/status`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setIssue(prev => ({ ...prev, status: targetStatus }));
+      setShowProofModal(false);
+      setProofImage(null);
+      setProofPreview(null);
+      alert(`Issue marked as ${targetStatus}`);
+    } catch (error) {
+      console.error('Error:', error);
       alert(error.response?.data?.message || 'Failed to update status');
     } finally {
       setStatusUpdating(false);
@@ -493,6 +556,106 @@ const IssueDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Proof Upload Modal */}
+      {showProofModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '2rem',
+            borderRadius: '8px',
+            maxWidth: '500px',
+            width: '90%'
+          }}>
+            <h2 style={{ marginBottom: '1rem' }}>Upload Proof of Resolution</h2>
+            <p style={{ marginBottom: '1rem', color: '#6b7280' }}>Please upload an image showing the issue has been resolved.</p>
+            
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleProofImageSelect(e.target.files[0])}
+              style={{ marginBottom: '1rem', width: '100%' }}
+            />
+            
+            {proofPreview && (
+              <div style={{ marginBottom: '1rem' }}>
+                <img src={proofPreview} alt="Proof" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px' }} />
+              </div>
+            )}
+            
+            {mlVerification?.loading && (
+              <p style={{ color: '#3b82f6' }}>🔍 Analyzing image...</p>
+            )}
+            
+            {mlVerification?.isWaste !== undefined && (
+              <div style={{
+                padding: '1rem',
+                borderRadius: '8px',
+                marginBottom: '1rem',
+                background: mlVerification.isWaste ? '#fee2e2' : '#dcfce7',
+                border: `2px solid ${mlVerification.isWaste ? '#dc2626' : '#16a34a'}`
+              }}>
+                <p style={{ margin: 0, fontWeight: 'bold', color: mlVerification.isWaste ? '#dc2626' : '#16a34a' }}>
+                  {mlVerification.isWaste ? '❌ Waste Detected' : '✅ No Waste Detected'}
+                </p>
+                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>
+                  Confidence: {mlVerification.confidence}%
+                </p>
+                {mlVerification.isWaste && (
+                  <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#991b1b' }}>
+                    Image shows waste is still present. Please clean the area first.
+                  </p>
+                )}
+              </div>
+            )}
+            
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowProofModal(false);
+                  setProofImage(null);
+                  setProofPreview(null);
+                  setMlVerification(null);
+                }}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  background: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitProofAndResolve}
+                disabled={statusUpdating || !proofImage || mlVerification?.isWaste}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: 'none',
+                  borderRadius: '4px',
+                  background: (!proofImage || mlVerification?.isWaste) ? '#ccc' : '#16a34a',
+                  color: 'white',
+                  cursor: (!proofImage || mlVerification?.isWaste) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {statusUpdating ? 'Submitting...' : 'Submit & Resolve'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

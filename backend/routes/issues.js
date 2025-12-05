@@ -330,13 +330,68 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 /**
  * ✅ Protected: Update status
  */
-router.patch('/:id/status', auth, isOfficial, async (req, res) => {
+router.patch('/:id/status', auth, isOfficial, upload.single('proof_image'), async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
     if (!['pending', 'in_progress', 'resolved', 'closed'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    // Require proof image for resolved/closed
+    if ((status === 'resolved' || status === 'closed') && !req.file) {
+      return res.status(400).json({ message: 'Proof image is required to mark issue as resolved or closed' });
+    }
+
+    // AI verification for resolved/closed
+    let proof_image_url = null;
+    if (req.file && (status === 'resolved' || status === 'closed')) {
+      const wasteModel = req.app.get('wasteModel');
+      if (wasteModel) {
+        try {
+          const resized = await sharp(req.file.buffer)
+            .resize(256, 256)
+            .raw()
+            .toBuffer();
+
+          const tensor = tf.tensor3d(resized, [256, 256, 3])
+            .expandDims(0)
+            .div(255.0);
+
+          const prediction = wasteModel.predict(tensor);
+          const wasteConfidence = prediction.dataSync()[0];
+          
+          tensor.dispose();
+          prediction.dispose();
+
+          console.log(`Proof verification: ${(wasteConfidence * 100).toFixed(2)}% waste detected`);
+          
+          // If waste confidence > 30%, reject (issue not resolved)
+          if (wasteConfidence > 0.30) {
+            return res.status(400).json({ 
+              message: 'Proof image shows waste is still present. Cannot mark as resolved.',
+              isWaste: true,
+              confidence: wasteConfidence
+            });
+          }
+        } catch (mlError) {
+          console.error('ML verification error:', mlError);
+        }
+      }
+
+      // Upload proof to Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'clean-india-proofs' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(req.file.buffer);
+      });
+      proof_image_url = result.secure_url;
     }
 
     // Get old status and user info
@@ -355,8 +410,8 @@ router.patch('/:id/status', auth, isOfficial, async (req, res) => {
     const issueTitle = issueData.rows[0].title;
 
     const updatedIssue = await pool.query(
-      'UPDATE issues SET status = $1, updated_at = $2, resolved_at = $3 WHERE id = $4 RETURNING *',
-      [status, new Date(), status === 'resolved' ? new Date() : null, id]
+      'UPDATE issues SET status = $1, updated_at = $2, resolved_at = $3, proof_image_url = $4 WHERE id = $5 RETURNING *',
+      [status, new Date(), status === 'resolved' ? new Date() : null, proof_image_url, id]
     );
 
     // Send email notification
