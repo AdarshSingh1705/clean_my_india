@@ -43,7 +43,7 @@ class EmailService {
       try {
         await sgMail.send({
           to,
-          from: process.env.EMAIL_USER || 'noreply@cleanmyindia.com',
+          from: process.env.EMAIL_USER || 'gfp.footprint2024@gmail.com',
           subject,
           html
         });
