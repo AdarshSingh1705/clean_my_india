@@ -22,7 +22,7 @@ class EmailService {
     }
 
     const smtpHost = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
-    const smtpPort = process.env.SMTP_PORT || 587;
+    const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
     console.log('📧 Using SMTP with:');
     console.log('  Host:', smtpHost);
     console.log('  Port:', smtpPort);
