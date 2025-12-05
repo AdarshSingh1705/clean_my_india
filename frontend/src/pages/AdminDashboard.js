@@ -66,6 +66,12 @@ const AdminDashboard = () => {
   };
 
   const updateIssueStatus = async (issueId, newStatus) => {
+    // Prevent resolved/closed without proof
+    if (newStatus === 'resolved' || newStatus === 'closed') {
+      alert('To mark an issue as resolved or closed, please go to the issue detail page and upload proof image.');
+      return;
+    }
+    
     try {
       await api.patch(`/issues/${issueId}/status`, { status: newStatus });
       setRecentIssues(prev => prev.map(issue => 
@@ -74,7 +80,7 @@ const AdminDashboard = () => {
       alert('Issue status updated successfully');
     } catch (error) {
       console.error('Error updating issue status:', error);
-      alert('Failed to update issue status');
+      alert(error.response?.data?.message || 'Failed to update issue status');
     }
   };
 

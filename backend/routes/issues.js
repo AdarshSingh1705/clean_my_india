@@ -330,7 +330,23 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 /**
  * ✅ Protected: Update status
  */
-router.patch('/:id/status', auth, isOfficial, upload.single('proof_image'), async (req, res) => {
+// Separate multer for proof images
+const proofUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
+
+router.patch('/:id/status', auth, isOfficial, proofUpload.single('proof_image'), async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;

@@ -28,6 +28,9 @@ const IssueDetail = () => {
   const [proofPreview, setProofPreview] = useState(null);
   const [mlVerification, setMlVerification] = useState(null);
   const [targetStatus, setTargetStatus] = useState(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const videoRef = React.useRef(null);
+  const canvasRef = React.useRef(null);
 
 
   useEffect(() => {
@@ -205,6 +208,39 @@ const IssueDetail = () => {
     } catch (err) {
       console.error('ML verification error:', err);
       setMlVerification({ error: true });
+    }
+  };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setShowCamera(true);
+      }
+    } catch (err) {
+      alert('Unable to access camera');
+    }
+  };
+
+  const capturePhoto = () => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    
+    canvas.toBlob((blob) => {
+      const file = new File([blob], 'proof.jpg', { type: 'image/jpeg' });
+      handleProofImageSelect(file);
+      stopCamera();
+    }, 'image/jpeg');
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current?.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      setShowCamera(false);
     }
   };
 
@@ -581,12 +617,41 @@ const IssueDetail = () => {
             <h2 style={{ marginBottom: '1rem' }}>Upload Proof of Resolution</h2>
             <p style={{ marginBottom: '1rem', color: '#6b7280' }}>Please upload an image showing the issue has been resolved.</p>
             
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleProofImageSelect(e.target.files[0])}
-              style={{ marginBottom: '1rem', width: '100%' }}
-            />
+            {!showCamera ? (
+              <div style={{ marginBottom: '1rem' }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleProofImageSelect(e.target.files[0])}
+                  style={{ marginBottom: '0.5rem', width: '100%' }}
+                />
+                <button
+                  onClick={startCamera}
+                  style={{ padding: '0.5rem 1rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%' }}
+                >
+                  📷 Use Camera
+                </button>
+              </div>
+            ) : (
+              <div style={{ marginBottom: '1rem' }}>
+                <video ref={videoRef} autoPlay style={{ width: '100%', borderRadius: '8px', marginBottom: '0.5rem' }} />
+                <canvas ref={canvasRef} style={{ display: 'none' }} />
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    onClick={capturePhoto}
+                    style={{ flex: 1, padding: '0.5rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    📸 Capture
+                  </button>
+                  <button
+                    onClick={stopCamera}
+                    style={{ flex: 1, padding: '0.5rem', background: '#dc2626', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    ✕ Cancel
+                  </button>
+                </div>
+              </div>
+            )}
             
             {proofPreview && (
               <div style={{ marginBottom: '1rem' }}>
@@ -623,6 +688,7 @@ const IssueDetail = () => {
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => {
+                  stopCamera();
                   setShowProofModal(false);
                   setProofImage(null);
                   setProofPreview(null);
