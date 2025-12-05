@@ -366,12 +366,12 @@ router.patch('/:id/status', auth, isOfficial, proofUpload.single('proof_image'),
       const wasteModel = req.app.get('wasteModel');
       if (wasteModel) {
         try {
-          const resized = await sharp(req.file.buffer)
+          const { data, info } = await sharp(req.file.buffer)
             .resize(256, 256)
             .raw()
-            .toBuffer();
+            .toBuffer({ resolveWithObject: true });
 
-          const tensor = tf.tensor3d(resized, [256, 256, 3])
+          const tensor = tf.tensor3d(new Uint8Array(data), [256, 256, 3])
             .expandDims(0)
             .div(255.0);
 
@@ -450,8 +450,8 @@ router.patch('/:id/status', auth, isOfficial, proofUpload.single('proof_image'),
       issue: updatedIssue.rows[0]
     });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Status update error:', err);
+    res.status(500).json({ message: err.message || 'Server error' });
   }
 });
 
