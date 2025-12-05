@@ -78,4 +78,81 @@ router.patch('/users/:id/role', auth, isAdmin, async (req, res) => {
   }
 });
 
+// Get activity logs
+router.get('/activity-logs', auth, isAdmin, async (req, res) => {
+  try {
+    const logs = await pool.query(`
+      SELECT 
+        'Issue Status Update' as action,
+        u.name as user_name,
+        CONCAT('Updated issue "', i.title, '" to ', i.status) as details,
+        i.updated_at as created_at
+      FROM issues i
+      LEFT JOIN users u ON i.created_by = u.id
+      WHERE i.updated_at > NOW() - INTERVAL '7 days'
+      ORDER BY i.updated_at DESC
+      LIMIT 50
+    `);
+
+    res.json({ logs: logs.rows });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update user ward
+router.patch('/users/:id/ward', auth, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ward_number } = req.body;
+
+    const updatedUser = await pool.query(
+      'UPDATE users SET ward_number = $1 WHERE id = $2 RETURNING id, name, email, role, ward_number',
+      [ward_number, id]
+    );
+
+    if (updatedUser.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      message: 'Ward updated successfully',
+      user: updatedUser.rows[0]
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update issue priority
+router.patch('/issues/:id/priority', auth, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { priority } = req.body;
+
+    if (!['low', 'medium', 'high', 'critical'].includes(priority)) {
+      return res.status(400).json({ message: 'Invalid priority' });
+    }
+
+    const updatedIssue = await pool.query(
+      'UPDATE issues SET priority = $1, updated_at = $2 WHERE id = $3 RETURNING *',
+      [priority, new Date(), id]
+    );
+
+    if (updatedIssue.rows.length === 0) {
+      return res.status(404).json({ message: 'Issue not found' });
+    }
+
+    res.json({
+      message: 'Issue priority updated successfully',
+      issue: updatedIssue.rows[0]
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
