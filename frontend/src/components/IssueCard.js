@@ -103,9 +103,32 @@ const IssueCard = ({ issue, onLike, onComment }) => {
             </div>
           )}
 
-          <Link to={`/issues/${issue.id || issue._id}`} className="details-link">
-            View Details →
-          </Link>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                const url = `https://www.google.com/maps/dir/?api=1&destination=${issue.latitude},${issue.longitude}`;
+                window.open(url, '_blank');
+              }}
+              style={{
+                padding: '8px 12px',
+                background: '#4285f4',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              🧭 Navigate
+            </button>
+            <Link to={`/issues/${issue.id || issue._id}`} className="details-link">
+              View Details →
+            </Link>
+          </div>
         </div>
 
         {isCommenting && (

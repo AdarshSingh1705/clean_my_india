@@ -253,8 +253,29 @@ const IssueDetail = () => {
 
               <div className="issue-location">
                 <h3>Location</h3>
-                <p>Latitude: {issue.latitude}, Longitude: {issue.longitude}</p>
-                {/* In a real app, you would show a map here */}
+                {issue.address && <p><strong>Address:</strong> {issue.address}</p>}
+                <p>Coordinates: {issue.latitude}, {issue.longitude}</p>
+                <button 
+                  onClick={() => {
+                    const url = `https://www.google.com/maps/dir/?api=1&destination=${issue.latitude},${issue.longitude}`;
+                    window.open(url, '_blank');
+                  }}
+                  style={{
+                    marginTop: '10px',
+                    padding: '10px 20px',
+                    background: '#4285f4',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  🧭 Navigate to Location
+                </button>
               </div>
 
 

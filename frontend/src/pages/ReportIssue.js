@@ -1,9 +1,43 @@
-import React, { useState } from 'react';
-// import axios from 'axios';
-import api from '../services/api';  // use your configured axios instance
+import React, { useState, useRef } from 'react';
+import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import './ReportIssue.css';
 import ImageUpload from "../components/ImageUpload";
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix Leaflet default marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+function LocationMarker({ position, setPosition, onLocationChange }) {
+  useMapEvents({
+    click(e) {
+      setPosition({ latitude: e.latlng.lat, longitude: e.latlng.lng });
+      onLocationChange(e.latlng.lat, e.latlng.lng);
+    },
+  });
+
+  return position.latitude ? (
+    <Marker 
+      position={[position.latitude, position.longitude]} 
+      draggable={true}
+      eventHandlers={{
+        dragend: (e) => {
+          const marker = e.target;
+          const pos = marker.getLatLng();
+          setPosition({ latitude: pos.lat, longitude: pos.lng });
+          onLocationChange(pos.lat, pos.lng);
+        },
+      }}
+    />
+  ) : null;
+}
 
 
 const ReportIssue = () => {
@@ -33,21 +67,45 @@ const ReportIssue = () => {
     }
   };
 
+  const mapRef = useRef();
+
+  const getAddressFromCoords = async (lat, lng) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      const data = await response.json();
+      if (data.display_name) {
+        setFormData({ ...formData, address: data.display_name });
+      }
+    } catch (error) {
+      console.error('Error fetching address:', error);
+    }
+  };
+
   const getLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setLocation({
+          const newLocation = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
-          });
+          };
+          setLocation(newLocation);
+          getAddressFromCoords(newLocation.latitude, newLocation.longitude);
+          
+          // Center map on user location
+          if (mapRef.current) {
+            mapRef.current.setView([newLocation.latitude, newLocation.longitude], 15);
+          }
         },
         (error) => {
           console.error('Error getting location:', error);
+          alert('Unable to get location. Please enable location services.');
         }
       );
     } else {
-      console.error('Geolocation is not supported by this browser.');
+      alert('Geolocation is not supported by this browser.');
     }
   };
 
@@ -196,13 +254,36 @@ const ReportIssue = () => {
           <div className="form-group">
             <label>Location</label>
             <button type="button" onClick={getLocation} className="location-btn">
-              Get Current Location
+              📍 Get Current Location
             </button>
+            
+            <div style={{ marginTop: '15px', height: '300px', borderRadius: '8px', overflow: 'hidden', border: '2px solid #e5e7eb' }}>
+              <MapContainer
+                center={[20.5937, 78.9629]} // India center
+                zoom={5}
+                style={{ height: '100%', width: '100%' }}
+                ref={mapRef}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                />
+                <LocationMarker 
+                  position={location} 
+                  setPosition={setLocation}
+                  onLocationChange={getAddressFromCoords}
+                />
+              </MapContainer>
+            </div>
+            
             {location.latitude && (
-              <p className="location-coords">
-                Location: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+              <p className="location-coords" style={{ marginTop: '10px', fontSize: '14px', color: '#16a34a' }}>
+                ✓ Location: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
               </p>
             )}
+            <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '5px' }}>
+              💡 Click on map or drag marker to adjust location
+            </p>
           </div>
           
           <button type="submit" className="submit-btn" disabled={submitting}>
