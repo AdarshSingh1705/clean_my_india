@@ -11,6 +11,7 @@ const ReportIssue = () => {
     title: '',
     description: '',
     category: 'waste',
+    address: '',
     image: null
   });
   const [location, setLocation] = useState({ latitude: null, longitude: null });
@@ -80,6 +81,7 @@ const ReportIssue = () => {
     data.append('title', formData.title);
     data.append('description', formData.description);
     data.append('category', formData.category);
+    data.append('address', formData.address);
     data.append('latitude', location.latitude);
     data.append('longitude', location.longitude);
     data.append('created_by', user.id);                // ✅ REQUIRED
@@ -136,6 +138,18 @@ const ReportIssue = () => {
               name="description"
               placeholder="Detailed description of the issue"
               value={formData.description}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Address</label>
+            <input
+              type="text"
+              name="address"
+              placeholder="Street address or landmark"
+              value={formData.address}
               onChange={handleChange}
               required
             />

@@ -186,10 +186,10 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     console.log('Creating issue - req.user:', req.user);
     console.log('Creating issue - req.file:', req.file);
 
-    const { title, description, category, latitude, longitude, priority } = req.body;
+    const { title, description, category, address, latitude, longitude, priority } = req.body;
 
-    if (!title || !description || !category || !latitude || !longitude) {
-      console.log('Missing required fields:', { title, description, category, latitude, longitude });
+    if (!title || !description || !category || !address || !latitude || !longitude) {
+      console.log('Missing required fields:', { title, description, category, address, latitude, longitude });
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -254,10 +254,10 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     console.log('Inserting issue into database...');
     const newIssue = await pool.query(
       `INSERT INTO issues
-       (title, description, category, latitude, longitude, image_url, created_by, priority)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       (title, description, category, address, latitude, longitude, image_url, created_by, priority)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [title, description, category, latitude, longitude, image_url, req.user.id, priority || 'medium']
+      [title, description, category, address, latitude, longitude, image_url, req.user.id, priority || 'medium']
     );
     console.log('Issue inserted successfully:', newIssue.rows[0]);
 
