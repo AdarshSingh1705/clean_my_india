@@ -82,15 +82,48 @@ router.patch('/users/:id/role', auth, isAdmin, async (req, res) => {
 router.get('/activity-logs', auth, isAdmin, async (req, res) => {
   try {
     const logs = await pool.query(`
-      SELECT 
-        'Issue Created' as action,
-        u.name as user_name,
-        'Created issue: ' || i.title as details,
-        i.created_at
-      FROM issues i
-      LEFT JOIN users u ON i.created_by = u.id
-      ORDER BY i.created_at DESC
-      LIMIT 50
+      SELECT * FROM (
+        SELECT 
+          'Issue Created' as action,
+          u.name as user_name,
+          'Created issue: ' || i.title as details,
+          i.created_at
+        FROM issues i
+        LEFT JOIN users u ON i.created_by = u.id
+        
+        UNION ALL
+        
+        SELECT 
+          'Comment Added' as action,
+          u.name as user_name,
+          'Commented on: ' || i.title as details,
+          c.created_at
+        FROM comments c
+        LEFT JOIN users u ON c.user_id = u.id
+        LEFT JOIN issues i ON c.issue_id = i.id
+        
+        UNION ALL
+        
+        SELECT 
+          'Issue Liked' as action,
+          u.name as user_name,
+          'Liked issue: ' || i.title as details,
+          l.created_at
+        FROM likes l
+        LEFT JOIN users u ON l.user_id = u.id
+        LEFT JOIN issues i ON l.issue_id = i.id
+        
+        UNION ALL
+        
+        SELECT 
+          'User Registered' as action,
+          u.name as user_name,
+          'Joined as ' || u.role as details,
+          u.created_at
+        FROM users u
+      ) activities
+      ORDER BY created_at DESC
+      LIMIT 100
     `);
 
     res.json({ logs: logs.rows });
@@ -172,16 +205,26 @@ router.post('/send-reminders', auth, isAdmin, async (req, res) => {
       );
 
       if (pendingIssues.rows.length > 0) {
-        await EmailService.sendIssueReminderEmail(
-          official.email,
-          official.name,
-          pendingIssues.rows
-        );
+        // Skip email in production if service not configured
+        if (process.env.NODE_ENV !== 'production' || EmailService.transporter || EmailService.useSendGrid) {
+          try {
+            await Promise.race([
+              EmailService.sendIssueReminderEmail(
+                official.email,
+                official.name,
+                pendingIssues.rows
+              ),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+            ]);
+          } catch (emailError) {
+            console.log('⚠️ Email skipped for', official.email);
+          }
+        }
         remindersSent++;
       }
     }
 
-    res.json({ message: `Reminders sent to ${remindersSent} official(s)` });
+    res.json({ message: `Reminders processed for ${remindersSent} official(s)` });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ message: 'Server error' });
