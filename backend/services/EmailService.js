@@ -21,10 +21,15 @@ class EmailService {
       return;
     }
 
-    console.log('📧 Using SMTP with:', process.env.EMAIL_USER);
+    const smtpHost = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
+    const smtpPort = process.env.SMTP_PORT || 587;
+    console.log('📧 Using SMTP with:');
+    console.log('  Host:', smtpHost);
+    console.log('  Port:', smtpPort);
+    console.log('  User:', process.env.EMAIL_USER);
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-      port: process.env.SMTP_PORT || 587,
+      host: smtpHost,
+      port: smtpPort,
       secure: false,
       auth: {
         user: process.env.EMAIL_USER,
