@@ -58,8 +58,25 @@ router.post('/register', async (req, res) => {
     );
     console.log('[register] JWT token generated successfully');
 
+    // Send verification email
+    try {
+      const verificationToken = jwt.sign(
+        { id: newUser.rows[0].id, email: newUser.rows[0].email },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      const EmailService = require('../services/EmailService');
+      await EmailService.sendVerificationEmail(
+        newUser.rows[0].email,
+        newUser.rows[0].name,
+        verificationToken
+      );
+    } catch (emailError) {
+      console.error('Verification email error:', emailError.message);
+    }
+
     res.status(201).json({
-      message: 'User created successfully',
+      message: 'User created successfully. Please check your email to verify your account.',
       token,
       user: newUser.rows[0]
     });
@@ -148,6 +165,25 @@ router.post('/forgot-password', async (req, res) => {
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
     res.status(500).json({ message: 'Failed to send reset email', error: error.message });
+  }
+});
+
+// Verify Email
+router.get('/verify-email/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    await pool.query(
+      'UPDATE users SET email_verified = TRUE WHERE id = $1',
+      [decoded.id]
+    );
+    
+    res.json({ message: 'Email verified successfully' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(400).json({ message: 'Invalid or expired verification link' });
   }
 });
 

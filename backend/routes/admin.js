@@ -83,14 +83,13 @@ router.get('/activity-logs', auth, isAdmin, async (req, res) => {
   try {
     const logs = await pool.query(`
       SELECT 
-        'Issue Status Update' as action,
+        'Issue Created' as action,
         u.name as user_name,
-        CONCAT('Updated issue "', i.title, '" to ', i.status) as details,
-        i.updated_at as created_at
+        'Created issue: ' || i.title as details,
+        i.created_at
       FROM issues i
       LEFT JOIN users u ON i.created_by = u.id
-      WHERE i.updated_at > NOW() - INTERVAL '7 days'
-      ORDER BY i.updated_at DESC
+      ORDER BY i.created_at DESC
       LIMIT 50
     `);
 
@@ -149,6 +148,40 @@ router.patch('/issues/:id/priority', auth, isAdmin, async (req, res) => {
       message: 'Issue priority updated successfully',
       issue: updatedIssue.rows[0]
     });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Send reminder emails to officials with pending issues
+router.post('/send-reminders', auth, isAdmin, async (req, res) => {
+  try {
+    const officials = await pool.query(
+      'SELECT id, name, email FROM users WHERE role = $1',
+      ['official']
+    );
+
+    let remindersSent = 0;
+    const EmailService = require('../services/EmailService');
+
+    for (const official of officials.rows) {
+      const pendingIssues = await pool.query(
+        'SELECT id, title, category, created_at FROM issues WHERE assigned_to = $1 AND status IN ($2, $3)',
+        [official.id, 'pending', 'in_progress']
+      );
+
+      if (pendingIssues.rows.length > 0) {
+        await EmailService.sendIssueReminderEmail(
+          official.email,
+          official.name,
+          pendingIssues.rows
+        );
+        remindersSent++;
+      }
+    }
+
+    res.json({ message: `Reminders sent to ${remindersSent} official(s)` });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ message: 'Server error' });

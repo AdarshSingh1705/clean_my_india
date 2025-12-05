@@ -5,12 +5,12 @@ const About = () => {
   return (
     <div className="about-page">
       <div className="container">
-        <h1>About Clean My India</h1>
+        <h1>About Clean India</h1>
         
         <section className="about-section">
           <h2>Our Mission</h2>
           <p>
-            Clean My India is a citizen-driven platform that empowers residents to report 
+            Clean India is a citizen-driven platform that empowers residents to report 
             sanitation and cleanliness issues in real time, engages municipal authorities 
             to resolve them, and provides transparent, verifiable closure of complaints.
           </p>

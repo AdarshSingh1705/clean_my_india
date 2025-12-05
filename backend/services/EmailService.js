@@ -180,6 +180,131 @@ class EmailService {
     );
   }
 
+  async sendVerificationEmail(userEmail, userName, verificationToken) {
+    const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email/${verificationToken}`;
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #16a34a;">✉️ Verify Your Email</h2>
+        <p>Hello ${userName},</p>
+        <p>Thank you for registering with Clean My India! Please verify your email address to activate your account.</p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${verifyUrl}" 
+             style="background: #16a34a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+            Verify Email Address
+          </a>
+        </div>
+        <p style="color: #6b7280; font-size: 14px;">Or copy this link: <br><a href="${verifyUrl}">${verifyUrl}</a></p>
+        <p style="color: #dc2626; font-size: 14px; margin-top: 20px;">⚠️ This link will expire in 24 hours.</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+        <p style="color: #6b7280; font-size: 12px;">
+          This is an automated message from Clean My India. Please do not reply to this email.
+        </p>
+      </div>
+    `;
+
+    await this.sendEmail(
+      userEmail,
+      'Verify Your Email - Clean My India',
+      html
+    );
+  }
+
+  async sendIssueReminderEmail(officialEmail, officialName, pendingIssues) {
+    const issuesList = pendingIssues.map(issue => 
+      `<li style="margin: 10px 0;">
+        <strong>${issue.title}</strong> - ${issue.category} 
+        <span style="color: #dc2626;">(${Math.floor((Date.now() - new Date(issue.created_at)) / (1000 * 60 * 60 * 24))} days old)</span>
+      </li>`
+    ).join('');
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #f59e0b;">⏰ Pending Issues Reminder</h2>
+        <p>Hello ${officialName},</p>
+        <p>You have <strong>${pendingIssues.length}</strong> pending issue(s) assigned to you:</p>
+        <ul style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          ${issuesList}
+        </ul>
+        <p>
+          <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" 
+             style="background: #f59e0b; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+            View Dashboard
+          </a>
+        </p>
+        <p>Please review and update these issues.</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+        <p style="color: #6b7280; font-size: 12px;">
+          This is an automated message from Clean My India. Please do not reply to this email.
+        </p>
+      </div>
+    `;
+
+    await this.sendEmail(
+      officialEmail,
+      `Reminder: ${pendingIssues.length} Pending Issue(s)`,
+      html
+    );
+  }
+
+  async sendIssueDeletionEmail(userEmail, userName, issueTitle, reason = 'administrative decision') {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #dc2626;">⚠️ Issue Deleted</h2>
+        <p>Hello ${userName},</p>
+        <p>Your reported issue has been deleted:</p>
+        <div style="background: #fee2e2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+          <h3 style="margin-top: 0; color: #991b1b;">${issueTitle}</h3>
+          <p style="margin: 10px 0;">Reason: ${reason}</p>
+        </div>
+        <p>If you believe this was done in error, please contact support.</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+        <p style="color: #6b7280; font-size: 12px;">
+          This is an automated message from Clean My India. Please do not reply to this email.
+        </p>
+      </div>
+    `;
+
+    await this.sendEmail(
+      userEmail,
+      `Issue Deleted: ${issueTitle}`,
+      html
+    );
+  }
+
+  async sendIssueAssignmentEmail(officialEmail, officialName, issueTitle, issueId) {
+    const issueUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/issues/${issueId}`;
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">📋 New Issue Assigned to You</h2>
+        <p>Hello ${officialName},</p>
+        <p>A new issue has been assigned to you:</p>
+        <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
+          <h3 style="margin-top: 0; color: #1e40af;">${issueTitle}</h3>
+          <p style="margin: 10px 0;">⚡ Status: <strong>ASSIGNED</strong></p>
+        </div>
+        <p>
+          <a href="${issueUrl}" 
+             style="background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+            View Issue Details
+          </a>
+        </p>
+        <p>Please review and take necessary action.</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+        <p style="color: #6b7280; font-size: 12px;">
+          This is an automated message from Clean My India. Please do not reply to this email.
+        </p>
+      </div>
+    `;
+
+    await this.sendEmail(
+      officialEmail,
+      `New Issue Assigned: ${issueTitle}`,
+      html
+    );
+  }
+
   async sendIssueResolvedNotification(userEmail, userName, issueTitle) {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

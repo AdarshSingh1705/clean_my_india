@@ -18,6 +18,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [filters, setFilters] = useState({ status: '', category: '' });
   const [activityLogs, setActivityLogs] = useState([]);
+  const [sendingReminders, setSendingReminders] = useState(false);
 
   useEffect(() => {
     if (currentUser?.role === 'admin') {
@@ -254,6 +255,21 @@ const AdminDashboard = () => {
 
         {activeTab === 'overview' && (
           <div className="overview-tab">
+            <div style={{ marginBottom: '1.5rem' }}>
+              <button 
+                onClick={async () => {
+                  try {
+                    await api.post('/admin/send-reminders');
+                    alert('Reminder emails sent to officials!');
+                  } catch (error) {
+                    alert('Failed to send reminders');
+                  }
+                }}
+                style={{ padding: '0.75rem 1.5rem', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: '600' }}
+              >
+                📧 Send Reminders to Officials
+              </button>
+            </div>
             <div className="stats-grid">
               <div className="stat-card">
                 <h3>{stats.totalUsers}</h3>
@@ -543,25 +559,36 @@ const AdminDashboard = () => {
 
         {activeTab === 'logs' && (
           <div className="logs-tab">
-            <h2>Activity Logs</h2>
+            <h2 style={{ marginBottom: '1.5rem' }}>📋 Activity Logs</h2>
             {activityLogs.length === 0 ? (
-              <p>No activity logs found</p>
+              <p style={{ textAlign: 'center', padding: '2rem', color: '#6c757d' }}>No activity logs found</p>
             ) : (
               <table className="logs-table">
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Details</th>
+                    <th>🕐 Time</th>
+                    <th>👤 User</th>
+                    <th>⚡ Action</th>
+                    <th>📝 Details</th>
                   </tr>
                 </thead>
                 <tbody>
                   {activityLogs.map((log, index) => (
                     <tr key={index}>
                       <td>{new Date(log.created_at).toLocaleString()}</td>
-                      <td>{log.user_name}</td>
-                      <td>{log.action}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
+                            {log.user_name?.charAt(0).toUpperCase()}
+                          </div>
+                          {log.user_name}
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500' }}>
+                          {log.action}
+                        </span>
+                      </td>
                       <td>{log.details}</td>
                     </tr>
                   ))}

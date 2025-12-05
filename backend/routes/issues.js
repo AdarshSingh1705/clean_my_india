@@ -392,6 +392,11 @@ router.patch('/:id/assign', auth, isOfficial, async (req, res) => {
     const { id } = req.params;
     const { assigned_to } = req.body;
 
+    const issueData = await pool.query(
+      'SELECT title FROM issues WHERE id = $1',
+      [id]
+    );
+
     const updatedIssue = await pool.query(
       'UPDATE issues SET assigned_to = $1, updated_at = $2 WHERE id = $3 RETURNING *',
       [assigned_to, new Date(), id]
@@ -399,6 +404,27 @@ router.patch('/:id/assign', auth, isOfficial, async (req, res) => {
 
     if (updatedIssue.rows.length === 0) {
       return res.status(404).json({ message: 'Issue not found' });
+    }
+
+    // Send email to assigned official
+    if (assigned_to) {
+      try {
+        const officialData = await pool.query(
+          'SELECT name, email FROM users WHERE id = $1',
+          [assigned_to]
+        );
+        if (officialData.rows.length > 0) {
+          const EmailService = require('../services/EmailService');
+          await EmailService.sendIssueAssignmentEmail(
+            officialData.rows[0].email,
+            officialData.rows[0].name,
+            issueData.rows[0].title,
+            id
+          );
+        }
+      } catch (emailError) {
+        console.error('Email notification error:', emailError.message);
+      }
     }
 
     const io = req.app.get('io');
@@ -479,7 +505,10 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const issueResult = await pool.query('SELECT * FROM issues WHERE id = $1', [id]);
+    const issueResult = await pool.query(
+      'SELECT i.*, u.email, u.name FROM issues i LEFT JOIN users u ON i.created_by = u.id WHERE i.id = $1',
+      [id]
+    );
     if (issueResult.rows.length === 0) {
       return res.status(404).json({ message: 'Issue not found' });
     }
@@ -492,6 +521,21 @@ router.delete('/:id', auth, async (req, res) => {
     await pool.query('DELETE FROM comments WHERE issue_id = $1', [id]);
     await pool.query('DELETE FROM likes WHERE issue_id = $1', [id]);
     await pool.query('DELETE FROM issues WHERE id = $1', [id]);
+
+    // Send deletion email to issue creator
+    if (issue.email && issue.created_by !== req.user.id) {
+      try {
+        const EmailService = require('../services/EmailService');
+        await EmailService.sendIssueDeletionEmail(
+          issue.email,
+          issue.name,
+          issue.title,
+          'Deleted by official'
+        );
+      } catch (emailError) {
+        console.error('Email notification error:', emailError.message);
+      }
+    }
 
     const io = req.app.get('io');
     if (io) io.emit('issue-deleted', { id });
