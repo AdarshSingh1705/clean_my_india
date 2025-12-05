@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
 class EmailService {
   constructor() {
@@ -7,14 +8,20 @@ class EmailService {
   }
 
   initializeTransporter() {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('⚠️ Email credentials not configured. EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET');
-      console.log('⚠️ EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'NOT SET');
+    if (process.env.SENDGRID_API_KEY) {
+      console.log('📧 Using SendGrid for emails');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      this.useSendGrid = true;
+      console.log('✅ Email service initialized with SendGrid');
       return;
     }
 
-    console.log('📧 Initializing email service with:', process.env.EMAIL_USER);
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log('⚠️ No email service configured');
+      return;
+    }
 
+    console.log('📧 Using SMTP with:', process.env.EMAIL_USER);
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
@@ -23,49 +30,52 @@ class EmailService {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       },
-      tls: {
-        rejectUnauthorized: false
-      },
+      tls: { rejectUnauthorized: false },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 10000
     });
-
-    console.log('✅ Email service initialized');
+    console.log('✅ Email service initialized with SMTP');
   }
 
   async sendEmail(to, subject, html) {
+    if (this.useSendGrid) {
+      try {
+        await sgMail.send({
+          to,
+          from: process.env.EMAIL_USER || 'noreply@cleanmyindia.com',
+          subject,
+          html
+        });
+        console.log('✅ Email sent via SendGrid to:', to);
+        return { messageId: 'sendgrid' };
+      } catch (error) {
+        console.error('❌ SendGrid error:', error.message);
+        throw error;
+      }
+    }
+
     if (!this.transporter) {
-      console.log('❌ Email service not configured, skipping email to:', to);
+      console.log('❌ Email service not configured');
       throw new Error('Email service not initialized');
     }
 
-    console.log('📤 Attempting to send email to:', to);
-    console.log('📤 Subject:', subject);
-
     try {
-      const mailOptions = {
-        from: `"Clean My India" <${process.env.EMAIL_USER}>`,
-        to,
-        subject,
-        html
-      };
-
-      console.log('📤 Sending email with options:', { from: mailOptions.from, to: mailOptions.to });
-      
       const info = await Promise.race([
-        this.transporter.sendMail(mailOptions),
+        this.transporter.sendMail({
+          from: `"Clean My India" <${process.env.EMAIL_USER}>`,
+          to,
+          subject,
+          html
+        }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Email timeout after 15s')), 15000)
         )
       ]);
-      console.log('✅ Email sent successfully! MessageId:', info.messageId);
+      console.log('✅ Email sent via SMTP to:', to);
       return info;
     } catch (error) {
-      console.error('❌ Email send error - Full details:');
-      console.error('Error message:', error.message);
-      console.error('Error code:', error.code);
-      console.error('Error stack:', error.stack);
+      console.error('❌ Email error:', error.message);
       throw error;
     }
   }

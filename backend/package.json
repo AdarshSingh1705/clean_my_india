@@ -18,6 +18,7 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.12.1",
     "bcryptjs": "^3.0.2",
