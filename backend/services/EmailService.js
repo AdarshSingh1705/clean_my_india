@@ -66,9 +66,10 @@ class EmailService {
     }
 
     try {
+      const fromEmail = process.env.EMAIL_FROM || 'gfp.footprint2024@gmail.com';
       const info = await Promise.race([
         this.transporter.sendMail({
-          from: `"Clean My India" <${process.env.EMAIL_USER}>`,
+          from: `"Clean My India" <${fromEmail}>`,
           to,
           subject,
           html
