@@ -336,9 +336,9 @@ const proofUpload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: function (req, file, cb) {
     const filetypes = /jpeg|jpg|png|gif/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
-    if (mimetype && extname) {
+    // Accept if mimetype is valid (camera captures may not have proper filename)
+    if (mimetype) {
       return cb(null, true);
     } else {
       cb(new Error('Only image files are allowed'));
