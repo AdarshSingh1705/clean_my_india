@@ -23,8 +23,8 @@ class EmailService {
 
     console.log('📧 Using SMTP with:', process.env.EMAIL_USER);
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
+      host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+      port: process.env.SMTP_PORT || 587,
       secure: false,
       auth: {
         user: process.env.EMAIL_USER,
