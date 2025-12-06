@@ -14,6 +14,7 @@ backend/.env.production
 frontend/.env
 frontend/.env.local
 frontend/.env.production
+backend/services/ImageVerificationService.js
 
 # Lock files
 package-lock.json

@@ -6,6 +6,8 @@ import './IssueCard.css';
 const IssueCard = ({ issue, onLike, onComment }) => {
   const [commentText, setCommentText] = useState('');
   const [isCommenting, setIsCommenting] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareCount, setShareCount] = useState(issue.shares || 0);
 
   const getStatusConfig = (status) => {
     const configs = {
@@ -34,6 +36,25 @@ const IssueCard = ({ issue, onLike, onComment }) => {
       setCommentText('');
       setIsCommenting(false);
     }
+  };
+
+  const handleShare = async (platform) => {
+    const url = `${window.location.origin}/issues/${issue.id}`;
+    const text = `Check out this civic issue: ${issue.title}`;
+    let shareUrl = '';
+    switch(platform) {
+      case 'whatsapp': shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`; break;
+      case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`; break;
+      case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
+      case 'copy': navigator.clipboard.writeText(url); alert('Link copied!'); setShowShareModal(false); return;
+    }
+    if (shareUrl) window.open(shareUrl, '_blank');
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/issues/${issue.id}/share`, { method: 'POST' });
+      const data = await response.json();
+      setShareCount(data.shares);
+    } catch (error) { console.error('Error:', error); }
+    setShowShareModal(false);
   };
 
   const statusConfig = getStatusConfig(issue.status);
@@ -95,6 +116,14 @@ const IssueCard = ({ issue, onLike, onComment }) => {
               <span className="engagement-icon">💬</span>
               <span className="engagement-count">{issue.comment_count || 0}</span>
             </button>
+            <button className="engagement-btn" style={{ cursor: 'default' }}>
+              <span className="engagement-icon">👁️</span>
+              <span className="engagement-count">{issue.views || 0}</span>
+            </button>
+            <button className="engagement-btn" onClick={(e) => { e.preventDefault(); setShowShareModal(true); }}>
+              <span className="engagement-icon">🔗</span>
+              <span className="engagement-count">{shareCount}</span>
+            </button>
           </div>
 
           {issue.creator_name && (
@@ -147,6 +176,20 @@ const IssueCard = ({ issue, onLike, onComment }) => {
               </button>
             </div>
           </form>
+        )}
+        {showShareModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowShareModal(false)}>
+            <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', maxWidth: '400px', width: '90%' }} onClick={(e) => e.stopPropagation()}>
+              <h3 style={{ marginBottom: '1rem' }}>Share Issue</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <button onClick={() => handleShare('whatsapp')} style={{ padding: '0.75rem', background: '#25D366', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>📱 WhatsApp</button>
+                <button onClick={() => handleShare('twitter')} style={{ padding: '0.75rem', background: '#1DA1F2', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>🐦 Twitter</button>
+                <button onClick={() => handleShare('facebook')} style={{ padding: '0.75rem', background: '#1877F2', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>📘 Facebook</button>
+                <button onClick={() => handleShare('copy')} style={{ padding: '0.75rem', background: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>📋 Copy Link</button>
+              </div>
+              <button onClick={() => setShowShareModal(false)} style={{ marginTop: '1rem', padding: '0.5rem', width: '100%', border: '1px solid #ddd', borderRadius: '6px', background: 'white', cursor: 'pointer' }}>Cancel</button>
+            </div>
+          </div>
         )}
       </div>
     </div>

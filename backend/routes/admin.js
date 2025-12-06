@@ -78,7 +78,7 @@ router.patch('/users/:id/role', auth, isAdmin, async (req, res) => {
   }
 });
 
-// Get activity logs
+// Get activity logs (officials only)
 router.get('/activity-logs', auth, isAdmin, async (req, res) => {
   try {
     const logs = await pool.query(`
@@ -90,6 +90,7 @@ router.get('/activity-logs', auth, isAdmin, async (req, res) => {
           i.created_at
         FROM issues i
         LEFT JOIN users u ON i.created_by = u.id
+        WHERE u.role = 'official'
         
         UNION ALL
         
@@ -101,6 +102,7 @@ router.get('/activity-logs', auth, isAdmin, async (req, res) => {
         FROM comments c
         LEFT JOIN users u ON c.user_id = u.id
         LEFT JOIN issues i ON c.issue_id = i.id
+        WHERE u.role = 'official'
         
         UNION ALL
         
@@ -112,6 +114,7 @@ router.get('/activity-logs', auth, isAdmin, async (req, res) => {
         FROM likes l
         LEFT JOIN users u ON l.user_id = u.id
         LEFT JOIN issues i ON l.issue_id = i.id
+        WHERE u.role = 'official'
         
         UNION ALL
         
@@ -121,6 +124,7 @@ router.get('/activity-logs', auth, isAdmin, async (req, res) => {
           'Joined as ' || u.role as details,
           u.created_at
         FROM users u
+        WHERE u.role = 'official'
       ) activities
       ORDER BY created_at DESC
       LIMIT 100

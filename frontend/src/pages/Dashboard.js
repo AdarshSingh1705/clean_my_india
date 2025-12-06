@@ -32,7 +32,13 @@ const Dashboard = () => {
       if (Array.isArray(response.data)) {
         allIssues = response.data;
       } else if (Array.isArray(response.data.issues)) {
-        allIssues = response.data.issues;
+        allIssues = response.data.issues.map(i => ({
+          ...i,
+          views: i.views ?? 0,
+          shares: i.shares ?? 0,
+          comment_count: i.comment_count ?? 0,
+          like_count: i.like_count ?? 0
+        }));
       } else if (response.data.issue) {
         allIssues = [response.data.issue];
       }
@@ -73,7 +79,7 @@ const Dashboard = () => {
     }
 
     try {
-          await api.post(`/issues/${issueId}/like`);
+      await api.post(`/likes/${issueId}`);
       fetchIssues();
     } catch (err) {
       if (err.response?.status === 401) {
@@ -92,7 +98,7 @@ const Dashboard = () => {
     }
 
     try {
-      await api.post(`/issues/${issueId}/comment`, { text });
+      await api.post(`/comments/${issueId}/comment`, { text });
       fetchIssues();
     } catch (err) {
       console.error("Error commenting:", err);

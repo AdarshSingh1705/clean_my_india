@@ -43,7 +43,9 @@ router.get('/', async (req, res) => {
         issues.*, 
         users.name as creator_name,
         COALESCE(comment_counts.count, 0) AS comment_count,
-        COALESCE(like_counts.count, 0) AS like_count
+        COALESCE(like_counts.count, 0) AS like_count,
+        COALESCE(issues.views, 0) AS views,
+        COALESCE(issues.shares, 0) AS shares
       FROM issues 
       LEFT JOIN users ON issues.created_by = users.id
       LEFT JOIN (
@@ -113,6 +115,12 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Increment view count
+    await pool.query(
+      'UPDATE issues SET views = COALESCE(views, 0) + 1 WHERE id = $1',
+      [id]
+    );
 
     const issueResult = await pool.query(
       `
@@ -602,6 +610,29 @@ router.delete('/:id', auth, async (req, res) => {
     if (io) io.emit('issue-deleted', { id });
 
     res.json({ message: 'Issue deleted successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * ✅ Public: Increment share count
+ */
+router.post('/:id/share', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      'UPDATE issues SET shares = COALESCE(shares, 0) + 1 WHERE id = $1 RETURNING shares',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Issue not found' });
+    }
+
+    res.json({ shares: result.rows[0].shares });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ message: 'Server error' });

@@ -31,8 +31,10 @@ const Issues = () => {
           longitude: i.longitude,
           image_url: i.image_url,
           created_at: i.created_at,
-          comments: i.comment_count ?? 0,
-          likes: i.like_count ?? 0,
+          comment_count: i.comment_count ?? 0,
+          like_count: i.like_count ?? 0,
+          views: i.views ?? 0,
+          shares: i.shares ?? 0,
           creator_name: i.creator_name,
         }));
         setIssues(normalized);

@@ -31,6 +31,9 @@ const IssueDetail = () => {
   const [showCamera, setShowCamera] = useState(false);
   const videoRef = React.useRef(null);
   const canvasRef = React.useRef(null);
+  const [viewCount, setViewCount] = useState(0);
+  const [shareCount, setShareCount] = useState(0);
+  const [showShareModal, setShowShareModal] = useState(false);
 
 
   useEffect(() => {
@@ -71,6 +74,8 @@ const IssueDetail = () => {
       setComments(response.data.comments || []);
       setLikeCount(response.data.like_count || 0);
       setUserLiked(response.data.user_liked || false);
+      setViewCount(response.data.views || 0);
+      setShareCount(response.data.shares || 0);
     } catch (error) {
       console.error('Error fetching issue details:', error);
       setError('Failed to load issue details');
@@ -136,6 +141,45 @@ const IssueDetail = () => {
       console.error('Error toggling like:', error);
       setError(error.response?.data?.message || 'Failed to update like');
     }
+  };
+
+  const handleShare = async (platform) => {
+    const url = window.location.href;
+    const text = `Check out this civic issue: ${issue.title}`;
+    
+    let shareUrl = '';
+    
+    switch(platform) {
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+        break;
+      default:
+        return;
+    }
+    
+    if (shareUrl) {
+      window.open(shareUrl, '_blank');
+    }
+    
+    // Increment share count
+    try {
+      const response = await api.post(`/issues/${id}/share`);
+      setShareCount(response.data.shares);
+    } catch (error) {
+      console.error('Error tracking share:', error);
+    }
+    
+    setShowShareModal(false);
   };
 
 
@@ -386,6 +430,14 @@ const IssueDetail = () => {
                 >
                   <span role="img" aria-label="like">👍</span> {likeCount}
                 </button>
+                <button 
+                  onClick={() => setShowShareModal(true)} 
+                  className="like-btn"
+                  title="Share this issue"
+                  style={{ marginLeft: '10px' }}
+                >
+                  <span role="img" aria-label="share">🔗</span> Share
+                </button>
                 {currentUser && currentUser.role === 'official' && (
                   <div className="official-actions">
                     {issue.status === 'pending' && (
@@ -529,11 +581,11 @@ const IssueDetail = () => {
                 <div className="label">Comments</div>
               </div>
               <div className="stat-card">
-                <div className="number">24</div>
+                <div className="number">{viewCount}</div>
                 <div className="label">Views</div>
               </div>
-              <div className="stat-card">
-                <div className="number">3</div>
+              <div className="stat-card" onClick={() => setShowShareModal(true)} style={{ cursor: 'pointer' }}>
+                <div className="number">{shareCount}</div>
                 <div className="label">Shares</div>
               </div>
             </div>
@@ -719,6 +771,126 @@ const IssueDetail = () => {
                 {statusUpdating ? 'Submitting...' : 'Submit & Resolve'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '2rem',
+            borderRadius: '8px',
+            maxWidth: '400px',
+            width: '90%'
+          }}>
+            <h2 style={{ marginBottom: '1rem' }}>Share this Issue</h2>
+            <p style={{ marginBottom: '1.5rem', color: '#6b7280' }}>Help spread awareness about this civic issue</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                onClick={() => handleShare('whatsapp')}
+                style={{
+                  padding: '0.75rem',
+                  background: '#25D366',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px'
+                }}
+              >
+                📱 Share on WhatsApp
+              </button>
+              
+              <button
+                onClick={() => handleShare('twitter')}
+                style={{
+                  padding: '0.75rem',
+                  background: '#1DA1F2',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px'
+                }}
+              >
+                🐦 Share on Twitter or X
+              </button>
+              
+              <button
+                onClick={() => handleShare('facebook')}
+                style={{
+                  padding: '0.75rem',
+                  background: '#1877F2',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px'
+                }}
+              >
+                📘 Share on Facebook
+              </button>
+              
+              <button
+                onClick={() => handleShare('copy')}
+                style={{
+                  padding: '0.75rem',
+                  background: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px'
+                }}
+              >
+                📋 Copy Link
+              </button>
+            </div>
+            
+            <button
+              onClick={() => setShowShareModal(false)}
+              style={{
+                marginTop: '1rem',
+                padding: '0.5rem',
+                width: '100%',
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                background: 'white',
+                cursor: 'pointer'
+              }}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
