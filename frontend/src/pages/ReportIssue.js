@@ -216,10 +216,18 @@ const ReportIssue = () => {
           <div className="form-group">
             <label>Category</label>
             <select name="category" value={formData.category} onChange={handleChange}>
-              <option value="waste">Waste</option>
-              <option value="drainage">Drainage</option>
-              <option value="graffiti">Graffiti</option>
+              <option value="waste">Waste Management</option>
+              <option value="drainage">Drainage & Sewage</option>
+              <option value="graffiti">Graffiti & Vandalism</option>
               <option value="street_cleaning">Street Cleaning</option>
+              <option value="pothole">Pothole & Road Damage</option>
+              <option value="streetlight">Street Light Issue</option>
+              <option value="water_leakage">Water Leakage</option>
+              <option value="illegal_dumping">Illegal Dumping</option>
+              <option value="stray_animals">Stray Animals</option>
+              <option value="public_toilet">Public Toilet Issue</option>
+              <option value="park_maintenance">Park Maintenance</option>
+              <option value="other">Other</option>
             </select>
           </div>
           

@@ -47,17 +47,17 @@ const Header = () => {
         </button>
         
         <nav className={`nav ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
-          <Link to="/">Home</Link>
-          <Link to="/issues">Issues</Link>
-          <Link to="/about">About</Link>
+          <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
+          <Link to="/issues" onClick={() => setIsMobileMenuOpen(false)}>Issues</Link>
+          <Link to="/about" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
           
           {currentUser ? (
             <>
-              <Link to="/dashboard">Dashboard</Link>
-              <Link to="/report">Report Issue</Link>
+              <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
+              <Link to="/report" onClick={() => setIsMobileMenuOpen(false)}>Report Issue</Link>
               
               {currentUser.role === 'admin' && (
-                <Link to="/admin">Admin</Link>
+                <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>Admin</Link>
               )}
               
               <Notifications />
@@ -68,10 +68,10 @@ const Header = () => {
                   <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Jhon?size=30px" className="Avatar" loading="lazy" alt="Avatar1" />
                 </div>
                 <div className={`user-menu-dropdown ${isMenuOpen ? 'show' : ''}`}>
-                  <Link to="/profile" className="dropdown-item" onClick={() => setIsMenuOpen(false)}>
+                  <Link to="/profile" className="dropdown-item" onClick={() => { setIsMenuOpen(false); setIsMobileMenuOpen(false); }}>
                     <span role="img" aria-label="profile">👤</span> Profile
                   </Link>
-                  <button className="dropdown-item logout-btn" onClick={handleLogout}>
+                  <button className="dropdown-item logout-btn" onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}>
                     <span role="img" aria-label="logout">🚪</span> Logout
                   </button>
                 </div>
@@ -79,8 +79,8 @@ const Header = () => {
             </>
           ) : (
             <div className="auth-links">
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
+              <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
+              <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>Register</Link>
             </div>
           )}
         </nav>
