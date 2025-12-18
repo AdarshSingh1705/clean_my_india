@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import IssueCard from "../components/IssueCard";
 import api from "../services/api";
 import "./Issues.css";
@@ -6,46 +6,65 @@ import "./Issues.css";
 const Issues = () => {
   const [issues, setIssues] = useState([]);
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const observer = useRef();
+
+  useEffect(() => {
+    setIssues([]);
+    setPage(1);
+    setHasMore(true);
+  }, [filter]);
 
   useEffect(() => {
     fetchIssues();
-  }, []);
+  }, [page, filter]);
 
   const fetchIssues = async () => {
+    if (loading) return;
+    setLoading(true);
     try {
-      const res = await api.get("/issues");
-      let issuesArr = [];
-      if (Array.isArray(res.data)) {
-        issuesArr = res.data;
-      } else if (Array.isArray(res.data.issues)) {
-        issuesArr = res.data.issues;
-      }
-      if (issuesArr.length > 0) {
-        const normalized = issuesArr.map((i) => ({
-          id: i.id,
-          title: i.title,
-          description: i.description,
-          category: i.category,
-          status: i.status,
-          latitude: i.latitude,
-          longitude: i.longitude,
-          image_url: i.image_url,
-          created_at: i.created_at,
-          comment_count: i.comment_count ?? 0,
-          like_count: i.like_count ?? 0,
-          views: i.views ?? 0,
-          shares: i.shares ?? 0,
-          creator_name: i.creator_name,
-        }));
-        setIssues(normalized);
-      } else {
-        setIssues([]);
-      }
+      const statusParam = filter === "all" ? "" : `&status=${filter}`;
+      const res = await api.get(`/issues?page=${page}&limit=12${statusParam}`);
+      const issuesArr = res.data.issues || [];
+      
+      const normalized = issuesArr.map((i) => ({
+        id: i.id,
+        title: i.title,
+        description: i.description,
+        category: i.category,
+        status: i.status,
+        latitude: i.latitude,
+        longitude: i.longitude,
+        image_url: i.image_url,
+        created_at: i.created_at,
+        comment_count: i.comment_count ?? 0,
+        like_count: i.like_count ?? 0,
+        views: i.views ?? 0,
+        shares: i.shares ?? 0,
+        creator_name: i.creator_name,
+      }));
+      
+      setIssues(prev => page === 1 ? normalized : [...prev, ...normalized]);
+      setHasMore(res.data.page < res.data.totalPages);
     } catch (err) {
       console.error("Error fetching issues:", err);
-      setIssues([]);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const lastIssueRef = useCallback(node => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prev => prev + 1);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, hasMore]);
 
   // Toggle Like with optimistic update
   const handleLike = async (id) => {
@@ -99,9 +118,6 @@ const Issues = () => {
     }
   };
 
-  const filteredIssues =
-    filter === "all" ? issues : issues.filter((i) => i.status === filter);
-
   return (
     <div className="issues-page">
       <div className="container">
@@ -124,17 +140,32 @@ const Issues = () => {
 
         {/* Grid */}
         <div className="issues-grid">
-          {filteredIssues.map((issue) => (
-            <IssueCard
-              key={issue.id}
-              issue={issue}
-              onLike={() => handleLike(issue.id)}
-              onComment={(text) => handleComment(issue.id, text)}
-            />
-          ))}
+          {issues.map((issue, index) => {
+            if (issues.length === index + 1) {
+              return (
+                <div ref={lastIssueRef} key={issue.id}>
+                  <IssueCard
+                    issue={issue}
+                    onLike={() => handleLike(issue.id)}
+                    onComment={(text) => handleComment(issue.id, text)}
+                  />
+                </div>
+              );
+            }
+            return (
+              <IssueCard
+                key={issue.id}
+                issue={issue}
+                onLike={() => handleLike(issue.id)}
+                onComment={(text) => handleComment(issue.id, text)}
+              />
+            );
+          })}
         </div>
 
-        {filteredIssues.length === 0 && (
+        {loading && <div className="loading">Loading more issues...</div>}
+
+        {issues.length === 0 && !loading && (
           <div className="empty-state">
             <h3>No issues found</h3>
             <p>There are no issues matching your selected filter.</p>

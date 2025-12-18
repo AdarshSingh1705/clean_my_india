@@ -39,3 +39,11 @@
   color: #7f8c8d;
   grid-column: 1 / -1;
 }
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #3498db;
+  font-size: 1.1rem;
+  grid-column: 1 / -1;
+}
