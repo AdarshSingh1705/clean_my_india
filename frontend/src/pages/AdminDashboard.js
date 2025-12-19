@@ -19,6 +19,7 @@ const AdminDashboard = () => {
   const [filters, setFilters] = useState({ status: '', category: '' });
   const [activityLogs, setActivityLogs] = useState([]);
   const [sendingReminders, setSendingReminders] = useState(false);
+  const [viewingUser, setViewingUser] = useState(null);
 
   useEffect(() => {
     if (currentUser?.role === 'admin') {
@@ -438,6 +439,12 @@ const AdminDashboard = () => {
                       </td>
                       <td>{new Date(user.created_at).toLocaleDateString()}</td>
                       <td>
+                        <a 
+                          href={`/admin/user-profile/${user.id}`}
+                          style={{ padding: '0.5rem 1rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', marginRight: '0.5rem', textDecoration: 'none', display: 'inline-block' }}
+                        >
+                          View Profile
+                        </a>
                         <button className="btn-danger">Delete</button>
                       </td>
                     </tr>
@@ -603,6 +610,8 @@ const AdminDashboard = () => {
             )}
           </div>
         )}
+
+
       </div>
     </div>
   );

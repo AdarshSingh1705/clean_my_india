@@ -26,16 +26,21 @@ const Profile = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [userIssues, setUserIssues] = useState([]);
+  const [assignedIssues, setAssignedIssues] = useState([]);
   const [stats, setStats] = useState({
     totalIssues: 0,
     resolvedIssues: 0,
     pendingIssues: 0,
+    assignedCount: 0,
+    assignedCompleted: 0,
   });
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '',
-    email: ''
+    email: '',
+    phone: '',
+    ward_number: ''
   });
 
   const handleLogout = () => {
@@ -47,8 +52,10 @@ const Profile = () => {
     if (currentUser) {
       fetchUserIssues();
       setEditForm({
-        name: currentUser.name,
-        email: currentUser.email
+        name: currentUser.name || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '',
+        ward_number: currentUser.ward_number || ''
       });
     }
   }, [currentUser]);
@@ -67,14 +74,19 @@ const Profile = () => {
         (issue) => issue.created_by === currentUser.id || issue.user_id === currentUser.id
       );
 
+      const assigned = allIssues.filter(
+        (issue) => issue.assigned_to === currentUser.id
+      );
+
       setUserIssues(filtered);
+      setAssignedIssues(assigned);
 
       setStats({
         totalIssues: filtered.length,
         resolvedIssues: filtered.filter((i) => i.status === 'resolved').length,
-        pendingIssues:
-          filtered.length -
-          filtered.filter((i) => i.status === 'resolved').length,
+        pendingIssues: filtered.length - filtered.filter((i) => i.status === 'resolved').length,
+        assignedCount: assigned.filter((i) => i.status !== 'resolved' && i.status !== 'closed').length,
+        assignedCompleted: assigned.filter((i) => i.status === 'resolved' || i.status === 'closed').length,
       });
     } catch (err) {
       console.error(err);
@@ -108,15 +120,6 @@ const Profile = () => {
           <button onClick={() => setIsEditModalOpen(true)} className="nav-item active">
             <EditIcon /> Edit Profile
           </button>
-          <a href="#" className="nav-item">
-            <SettingsIcon /> Settings
-          </a>
-          <a href="#" className="nav-item">
-            <InfoIcon /> Activity
-          </a>
-          <a href="#" className="nav-item">
-            <HelpIcon /> Help
-          </a>
         </nav>
 
         <button className="logout-btn" onClick={handleLogout}>
@@ -156,6 +159,24 @@ const Profile = () => {
               <p>Pending</p>
             </div>
           </div>
+          {(currentUser.role === 'official' || currentUser.role === 'admin') && (
+            <>
+              <div className="stat-box">
+                <div className="stat-icon purple">👤</div>
+                <div className="stat-info">
+                  <h3>{stats.assignedCount}</h3>
+                  <p>Assigned to Me</p>
+                </div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-icon green">✔️</div>
+                <div className="stat-info">
+                  <h3>{stats.assignedCompleted}</h3>
+                  <p>Completed</p>
+                </div>
+              </div>
+            </>
+          )}
         </section>
 
         {/* Chart Section */}
@@ -171,6 +192,38 @@ const Profile = () => {
             </BarChart>
           </ResponsiveContainer>
         </section>
+
+        {/* Assigned Issues Section (Officials Only) */}
+        {(currentUser.role === 'official' || currentUser.role === 'admin') && assignedIssues.length > 0 && (
+          <section className="issues-section">
+            <div className="section-header">
+              <h2>🎯 Issues Assigned to You</h2>
+            </div>
+            <div className="issues-list">
+              {assignedIssues.map((issue) => (
+                <div 
+                  className="issue-item clickable" 
+                  key={issue.id}
+                  onClick={() => navigate(`/issues/${issue.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="issue-content">
+                    <h3>{issue.title}</h3>
+                    <p>{issue.description}</p>
+                    <div className="issue-meta">
+                      <span className={`status-badge ${issue.status}`}>
+                        {issue.status.replace('_', ' ')}
+                      </span>
+                      <span className="issue-date">
+                        {new Date(issue.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Issues Section */}
         <section className="issues-section">
@@ -227,8 +280,9 @@ const Profile = () => {
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
-                await api.put('/users/profile', editForm);
+                const res = await api.put('/users/profile', editForm);
                 alert('Profile updated successfully!');
+                localStorage.setItem('user', JSON.stringify(res.data.user));
                 setIsEditModalOpen(false);
                 window.location.reload();
               } catch (err) {
@@ -251,6 +305,24 @@ const Profile = () => {
                   value={editForm.email}
                   onChange={(e) => setEditForm({...editForm, email: e.target.value})}
                   required
+                />
+              </div>
+              <div className="form-group">
+                <label>Phone Number</label>
+                <input
+                  type="tel"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                  placeholder="+91 XXXXXXXXXX"
+                />
+              </div>
+              <div className="form-group">
+                <label>Ward Number</label>
+                <input
+                  type="text"
+                  value={editForm.ward_number}
+                  onChange={(e) => setEditForm({...editForm, ward_number: e.target.value})}
+                  placeholder="Enter your ward number"
                 />
               </div>
               <div className="modal-actions">

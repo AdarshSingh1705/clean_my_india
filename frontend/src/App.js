@@ -16,6 +16,7 @@ import Issues from './pages/Issues';
 import IssueDetail from './pages/IssueDetail';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import UserProfileView from './pages/UserProfileView';
 import About from './pages/About';
 import './App.css';
 
@@ -82,6 +83,14 @@ function AppContent() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/user-profile/:userId" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <UserProfileView />
               </ProtectedRoute>
             } 
           />
